@@ -14,14 +14,49 @@
         app:show_fps="true"
         app:camera_id="back" />
 
+    <LinearLayout
+        android:id="@+id/controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#80000000"
+        app:layout_constraintBottom_toTopOf="@id/btn_capture">
+
+        <TextView
+            android:id="@+id/tv_threshold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Canny Threshold: 50"
+            android:textColor="@android:color/white" />
+
+        <SeekBar
+            android:id="@+id/sb_threshold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="255"
+            android:progress="50" />
+    </LinearLayout>
+
     <Button
         android:id="@+id/btn_capture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
-        android:text="Capturar"
+        android:text="Capturar Pipeline"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ToggleButton
+        android:id="@+id/btn_process"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:textOn="Processando"
+        android:textOff="Original"
+        android:checked="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

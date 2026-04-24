@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">VisionProject</string>
+    <string name="canny_threshold">Canny Threshold: %1$d</string>
+    <string name="capture_pipeline">Capturar Pipeline</string>
+    <string name="processing">Processando</string>
+    <string name="original">Original</string>
+    <string name="pipeline_saved">Pipeline salvo (4 imagens)!</string>
+    <string name="opencv_init_failed">OpenCV initialization failed</string>
+    <string name="camera_permission_required">Camera permission is required</string>
 </resources>
