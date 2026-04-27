@@ -4,10 +4,12 @@ import android.Manifest;
 import android.content.ContentValues;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.SurfaceView;
@@ -31,8 +33,8 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.PrintWriter;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -40,16 +42,30 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
 
     private CameraBridgeViewBase mOpenCvCameraView;
+    private PccModule mPccModule;
+    private TextView mTvDebugPcc, mTvDebugStatus, mTvDebugDiscard, mTvDebugIta, mTvTimer;
     private Mat mRgbaFrame;
-    private Mat mIntermediateFrame;
     private boolean mSaveNextFrame = false;
     private int mCannyThreshold = 50;
     private boolean mIsProcessing = true;
+    private int mViewMode = 0; // 0: Original, 1: Canny
+
+    private boolean mIsExpRunning = false;
+    private long mExpStartTime = 0;
+    private long mLastUiUpdate = 0; // Para limitar atualizações da UI
+    private StringBuilder mLogBuffer;
+    private Handler mTimerHandler = new Handler();
+    private Runnable mTimerRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        if (!OpenCVLoader.initLocal()) {
+            Log.e(TAG, "OpenCV library not found!");
+        }
+
         setContentView(R.layout.activity_main);
 
         mOpenCvCameraView = findViewById(R.id.camera_view);
@@ -58,6 +74,14 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             mOpenCvCameraView.setCvCameraViewListener(this);
         }
 
+        mPccModule = new PccModule();
+
+        mTvDebugPcc = findViewById(R.id.tv_debug_pcc);
+        mTvDebugStatus = findViewById(R.id.tv_debug_status);
+        mTvDebugDiscard = findViewById(R.id.tv_debug_discard);
+        mTvDebugIta = findViewById(R.id.tv_debug_ita);
+        mTvTimer = findViewById(R.id.tv_timer);
+
         SeekBar sbThreshold = findViewById(R.id.sb_threshold);
         TextView tvThreshold = findViewById(R.id.tv_threshold);
         if (sbThreshold != null && tvThreshold != null) {
@@ -65,32 +89,123 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     mCannyThreshold = progress;
-                    tvThreshold.setText(getString(R.string.canny_threshold, mCannyThreshold));
+                    tvThreshold.setText("Canny Threshold: " + mCannyThreshold);
                 }
                 @Override public void onStartTrackingTouch(SeekBar seekBar) {}
                 @Override public void onStopTrackingTouch(SeekBar seekBar) {}
             });
         }
 
-        ToggleButton btnProcess = findViewById(R.id.btn_process);
-        if (btnProcess != null) {
-            btnProcess.setOnCheckedChangeListener((buttonView, isChecked) -> mIsProcessing = isChecked);
+        SeekBar sbTheta = findViewById(R.id.sb_theta);
+        TextView tvThetaLabel = findViewById(R.id.tv_theta_label);
+        if (sbTheta != null && tvThetaLabel != null) {
+            sbTheta.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    double theta = progress / 100.0;
+                    mPccModule.setThresholdTheta(theta);
+                    tvThetaLabel.setText(String.format(Locale.US, "PCC Threshold (θ): %.2f", theta));
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
         }
 
-        Button btnCapture = findViewById(R.id.btn_capture);
-        if (btnCapture != null) {
-            btnCapture.setOnClickListener(v -> mSaveNextFrame = true);
-        }
+        findViewById(R.id.btn_reset).setOnClickListener(v -> mPccModule.resetStats());
+        
+        ToggleButton btnProcess = findViewById(R.id.btn_process);
+        btnProcess.setOnCheckedChangeListener((v, isChecked) -> mIsProcessing = isChecked);
+
+        findViewById(R.id.rb_view_orig).setOnClickListener(v -> mViewMode = 0);
+        findViewById(R.id.rb_view_canny).setOnClickListener(v -> mViewMode = 1);
+
+        ToggleButton btnRecord = findViewById(R.id.btn_record);
+        btnRecord.setOnCheckedChangeListener((v, isChecked) -> {
+            if (isChecked) startExperiment();
+            else stopExperiment();
+        });
+
+        findViewById(R.id.btn_capture).setOnClickListener(v -> mSaveNextFrame = true);
+
+        mTimerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!mIsExpRunning) return;
+                long millis = System.currentTimeMillis() - mExpStartTime;
+                int seconds = (int) (millis / 1000);
+                int minutes = seconds / 60;
+                int sec = seconds % 60;
+
+                mTvTimer.setText(String.format(Locale.US, "%02d:%02d", minutes, sec));
+                if (seconds >= 120) {
+                    btnRecord.setChecked(false);
+                    return;
+                }
+                mTimerHandler.postDelayed(this, 500);
+            }
+        };
 
         checkCameraPermission();
     }
 
+    private void startExperiment() {
+        mPccModule.resetStats();
+        mIsExpRunning = true;
+        mExpStartTime = System.currentTimeMillis();
+        mLogBuffer = new StringBuilder();
+        mLogBuffer.append("Timestamp,Seconds,Phase,PCC,CRE,Status,DiscardRate,ITA_After\n");
+        mTimerHandler.post(mTimerRunnable);
+        Toast.makeText(this, "EXPERIMENTO INICIADO: Gravando dados...", Toast.LENGTH_SHORT).show();
+    }
+
+    private void stopExperiment() {
+        mIsExpRunning = false;
+        mTimerHandler.removeCallbacks(mTimerRunnable);
+        saveLogToFile();
+        mTvTimer.setText("00:00");
+    }
+
+    private void logData() {
+        if (mLogBuffer == null) return;
+        long elapsedMillis = System.currentTimeMillis() - mExpStartTime;
+        double seconds = elapsedMillis / 1000.0;
+        String phase = (seconds < 30) ? "PARADO" : (seconds < 60) ? "CAMINHANDO" : (seconds < 90) ? "OBSTACULO" : "FINAL";
+        mLogBuffer.append(String.format(Locale.US, "%d,%.2f,%s,%.4f,%.4f,%s,%.1f,%d\n",
+                System.currentTimeMillis(), seconds, phase,
+                mPccModule.getCurrentPcc(), mPccModule.getCurrentCre(),
+                mPccModule.getStatus(), mPccModule.getDiscardRate(),
+                mPccModule.getItaPointsAfter()));
+    }
+
+    private void saveLogToFile() {
+        if (mLogBuffer == null || mLogBuffer.length() == 0) return;
+        try {
+            long timestamp = System.currentTimeMillis();
+            String fileName = "Exp1_Theta_" + String.format(Locale.US, "%.2f", mPccModule.getThresholdTheta()) + "_" + timestamp + ".csv";
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+            values.put(MediaStore.MediaColumns.MIME_TYPE, "text/csv");
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS + "/VisionProject");
+
+            Uri uri = getContentResolver().insert(MediaStore.Files.getContentUri("external"), values);
+            if (uri != null) {
+                try (OutputStream os = getContentResolver().openOutputStream(uri);
+                     PrintWriter writer = new PrintWriter(os)) {
+                    writer.print(mLogBuffer.toString());
+                    writer.flush();
+                }
+                Toast.makeText(this, "EXPERIMENTO CONCLUÍDO\nArquivo salvo: " + fileName, Toast.LENGTH_LONG).show();
+            }
+            mLogBuffer = null;
+        } catch (Exception e) {
+            Log.e(TAG, "Erro ao salvar log", e);
+            Toast.makeText(this, "Erro ao salvar arquivo!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void checkCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA},
-                    CAMERA_PERMISSION_REQUEST_CODE);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
         } else {
             mOpenCvCameraView.setCameraPermissionGranted();
         }
@@ -99,136 +214,136 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                mOpenCvCameraView.setCameraPermissionGranted();
-                mOpenCvCameraView.enableView();
-            } else {
-                Toast.makeText(this, R.string.camera_permission_required, Toast.LENGTH_LONG).show();
-            }
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            mOpenCvCameraView.setCameraPermissionGranted();
+            mOpenCvCameraView.enableView();
         }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
+        if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (!OpenCVLoader.initLocal()) {
-            Log.e(TAG, "OpenCV library not found!");
-            Toast.makeText(this, R.string.opencv_init_failed, Toast.LENGTH_LONG).show();
-        } else {
-            Log.d(TAG, "OpenCV library found inside package. Using it!");
-            mOpenCvCameraView.enableView();
-        }
+        if (OpenCVLoader.initLocal()) mOpenCvCameraView.enableView();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
+        if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
     }
 
     @Override
     public void onCameraViewStarted(int width, int height) {
         mRgbaFrame = new Mat();
-        mIntermediateFrame = new Mat();
     }
 
     @Override
     public void onCameraViewStopped() {
         if (mRgbaFrame != null) mRgbaFrame.release();
-        if (mIntermediateFrame != null) mIntermediateFrame.release();
     }
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        mRgbaFrame = inputFrame.rgba();
+        Mat rgba = inputFrame.rgba();
 
         if (mIsProcessing) {
-            Mat gray = new Mat();
-            Mat blur = new Mat();
-            Mat edges = new Mat();
-
-            // 1. Cinza
-            Imgproc.cvtColor(mRgbaFrame, gray, Imgproc.COLOR_RGBA2GRAY);
-            // 2. Gaussiano
-            Imgproc.GaussianBlur(gray, blur, new Size(5, 5), 0);
-            // 3. Canny
-            Imgproc.Canny(blur, edges, mCannyThreshold, mCannyThreshold * 2);
-
-            if (mSaveNextFrame) {
-                mSaveNextFrame = false;
-                List<Mat> framesToSave = new ArrayList<>();
-                framesToSave.add(mRgbaFrame.clone()); // Original
-                framesToSave.add(gray.clone());      // Cinza
-                framesToSave.add(blur.clone());      // Suavizada
-                framesToSave.add(edges.clone());     // Bordas
-                savePipeline(framesToSave);
+            boolean shouldFullProcess = mPccModule.processFrame(rgba);
+            
+            // Só atualiza a interface a cada 200ms para não travar o app
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - mLastUiUpdate > 200) {
+                updateDebugUI();
+                mLastUiUpdate = currentTime;
             }
 
-            // Converter bordas de volta para RGBA para exibição
-            Imgproc.cvtColor(edges, mRgbaFrame, Imgproc.COLOR_GRAY2RGBA);
-            
-            gray.release();
-            blur.release();
-            edges.release();
+            if (shouldFullProcess) {
+                if (mViewMode == 1) {
+                    // Modo Canny: Aplicamos no ROI ou no frame todo? 
+                    // Para o experimento, aplicaremos no frame todo para visualização
+                    Mat gray = new Mat(), blur = new Mat(), edges = new Mat();
+                    Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY);
+                    Imgproc.GaussianBlur(gray, blur, new Size(5, 5), 0);
+                    Imgproc.Canny(blur, edges, mCannyThreshold, mCannyThreshold * 2);
+                    Imgproc.cvtColor(edges, rgba, Imgproc.COLOR_GRAY2RGBA);
+                    
+                    if (mSaveNextFrame) {
+                        mSaveNextFrame = false;
+                        savePipeline(rgba.clone(), gray.clone(), blur.clone(), edges.clone());
+                    }
+                    gray.release(); blur.release(); edges.release();
+                } else if (mSaveNextFrame) {
+                    mSaveNextFrame = false;
+                    saveFrame(rgba.clone());
+                }
+            } else {
+                // Caso de descarte (DPM ativado)
+                if (mSaveNextFrame) {
+                    mSaveNextFrame = false;
+                    saveFrame(rgba.clone());
+                }
+            }
+            if (mIsExpRunning) logData();
         } else if (mSaveNextFrame) {
             mSaveNextFrame = false;
-            saveFrame(mRgbaFrame.clone());
+            saveFrame(rgba.clone());
         }
 
-        return mRgbaFrame;
+        return rgba;
     }
 
-    private void savePipeline(List<Mat> frames) {
-        long timestamp = System.currentTimeMillis();
-        String[] labels = {"original", "gray", "blur", "edges"};
-        
-        for (int i = 0; i < frames.size(); i++) {
-            saveFrame(frames.get(i), "pipeline_" + labels[i] + "_" + timestamp + ".jpg");
-        }
-        runOnUiThread(() -> Toast.makeText(this, R.string.pipeline_saved, Toast.LENGTH_SHORT).show());
+    private void updateDebugUI() {
+        runOnUiThread(() -> {
+            String fullStatus = mPccModule.getFullStatus();
+            double pcc = mPccModule.getCurrentPcc();
+            double cre = mPccModule.getCurrentCre();
+            double discardRate = mPccModule.getDiscardRate();
+            int ita = mPccModule.getItaPointsAfter();
+
+            mTvDebugPcc.setText(String.format(Locale.US, "PCC: %.4f | CRE: %.4f", pcc, cre));
+            mTvDebugStatus.setText("Status: " + fullStatus);
+            
+            String status = mPccModule.getStatus();
+            if ("IDLE".equals(status)) mTvDebugStatus.setTextColor(Color.WHITE);
+            else if ("DISCARD".equals(status)) mTvDebugStatus.setTextColor(Color.YELLOW);
+            else mTvDebugStatus.setTextColor(Color.GREEN);
+
+            mTvDebugDiscard.setText(String.format(Locale.US, "Descarte: %.1f%%", discardRate));
+            mTvDebugIta.setText(String.format(Locale.US, "ITA: %d pts", ita));
+        });
     }
 
-    private void saveFrame(Mat frame) {
-        saveFrame(frame, "capture_" + System.currentTimeMillis() + ".jpg");
+    private void savePipeline(Mat orig, Mat gray, Mat blur, Mat edges) {
+        long ts = System.currentTimeMillis();
+        saveFrame(orig, "p_orig_" + ts + ".jpg");
+        saveFrame(gray, "p_gray_" + ts + ".jpg");
+        saveFrame(blur, "p_blur_" + ts + ".jpg");
+        saveFrame(edges, "p_edge_" + ts + ".jpg");
+        runOnUiThread(() -> Toast.makeText(this, "Pipeline Salvo", Toast.LENGTH_SHORT).show());
     }
+
+    private void saveFrame(Mat frame) { saveFrame(frame, "cap_" + System.currentTimeMillis() + ".jpg"); }
 
     private void saveFrame(Mat frame, String filename) {
-        Bitmap bitmap = Bitmap.createBitmap(frame.cols(), frame.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(frame, bitmap);
-        frame.release();
-
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
-        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        Bitmap bmp = Bitmap.createBitmap(frame.cols(), frame.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(frame, bmp);
+        ContentValues v = new ContentValues();
+        v.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
+        v.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/VisionProject");
-            values.put(MediaStore.Images.Media.IS_PENDING, 1);
+            v.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/VisionProject");
         }
-
-        Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-
+        Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
         if (uri != null) {
             try (OutputStream out = getContentResolver().openOutputStream(uri)) {
-                if (out != null) {
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    values.clear();
-                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
-                    getContentResolver().update(uri, values, null, null);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Erro ao salvar frame: " + filename, e);
-            }
+                bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+            } catch (Exception e) { Log.e(TAG, "Err save", e); }
         }
+        frame.release();
     }
 }
