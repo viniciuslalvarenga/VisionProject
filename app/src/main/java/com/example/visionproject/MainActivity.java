@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -111,8 +112,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         findViewById(R.id.btn_reset).setOnClickListener(v -> mPccModule.resetStats());
         
-        findViewById(R.id.rb_view_orig).setOnClickListener(v -> mViewMode = 0);
-        findViewById(R.id.rb_view_canny).setOnClickListener(v -> mViewMode = 1);
+        Switch swCanny = findViewById(R.id.sw_canny);
+        if (swCanny != null) {
+            swCanny.setOnCheckedChangeListener((v, isChecked) -> mViewMode = isChecked ? 1 : 0);
+        }
 
         ToggleButton btnRecord = findViewById(R.id.btn_record);
         btnRecord.setOnCheckedChangeListener((v, isChecked) -> {
