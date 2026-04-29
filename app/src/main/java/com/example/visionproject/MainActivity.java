@@ -10,11 +10,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,7 +44,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private CameraBridgeViewBase mOpenCvCameraView;
     private PccModule mPccModule;
     private TextView mTvDebugPcc, mTvDebugStatus, mTvDebugDiscard, mTvDebugIta, mTvTimer;
-    private Mat mRgbaFrame;
     private boolean mSaveNextFrame = false;
     private int mCannyThreshold = 50;
     private int mViewMode = 0; // 0: Original, 1: Canny
@@ -53,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private long mExpStartTime = 0;
     private long mLastUiUpdate = 0; // Para limitar atualizações da UI
     private StringBuilder mLogBuffer;
-    private Handler mTimerHandler = new Handler();
+    private final Handler mTimerHandler = new Handler(Looper.getMainLooper());
     private Runnable mTimerRunnable;
 
     @Override
@@ -88,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     mCannyThreshold = progress;
-                    tvThreshold.setText("Canny Threshold: " + mCannyThreshold);
+                    tvThreshold.setText(getString(R.string.canny_threshold_label, mCannyThreshold));
                 }
                 @Override public void onStartTrackingTouch(SeekBar seekBar) {}
                 @Override public void onStopTrackingTouch(SeekBar seekBar) {}
@@ -103,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     double theta = progress / 100.0;
                     mPccModule.setThresholdTheta(theta);
-                    tvThetaLabel.setText(String.format(Locale.US, "PCC Threshold (θ): %.2f", theta));
+                    tvThetaLabel.setText(getString(R.string.pcc_threshold_label, theta));
                 }
                 @Override public void onStartTrackingTouch(SeekBar seekBar) {}
                 @Override public void onStopTrackingTouch(SeekBar seekBar) {}
@@ -158,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         mIsExpRunning = false;
         mTimerHandler.removeCallbacks(mTimerRunnable);
         saveLogToFile();
-        mTvTimer.setText("00:00");
+        mTvTimer.setText(R.string.timer_default);
     }
 
     private void logData() {
@@ -185,10 +184,13 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
             Uri uri = getContentResolver().insert(MediaStore.Files.getContentUri("external"), values);
             if (uri != null) {
-                try (OutputStream os = getContentResolver().openOutputStream(uri);
-                     PrintWriter writer = new PrintWriter(os)) {
-                    writer.print(mLogBuffer.toString());
-                    writer.flush();
+                try (OutputStream os = getContentResolver().openOutputStream(uri)) {
+                    if (os != null) {
+                        try (PrintWriter writer = new PrintWriter(os)) {
+                            writer.print(mLogBuffer.toString());
+                            writer.flush();
+                        }
+                    }
                 }
                 Toast.makeText(this, "EXPERIMENTO CONCLUÍDO\nArquivo salvo: " + fileName, Toast.LENGTH_LONG).show();
             }
@@ -236,12 +238,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     @Override
     public void onCameraViewStarted(int width, int height) {
-        mRgbaFrame = new Mat();
     }
 
     @Override
     public void onCameraViewStopped() {
-        if (mRgbaFrame != null) mRgbaFrame.release();
     }
 
     @Override
@@ -300,8 +300,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             double discardRate = mPccModule.getDiscardRate();
             int ita = mPccModule.getItaPointsAfter();
 
-            mTvDebugPcc.setText(String.format(Locale.US, "PCC: %.4f | CRE: %.4f", pcc, cre));
-            mTvDebugStatus.setText("Status: " + fullStatus);
+            mTvDebugPcc.setText(getString(R.string.pcc_cre_label, pcc, cre));
+            mTvDebugStatus.setText(getString(R.string.status_label, fullStatus));
             
             String status = mPccModule.getStatus();
             if ("IDLE".equals(status)) mTvDebugStatus.setTextColor(Color.WHITE);
@@ -336,7 +336,9 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
         if (uri != null) {
             try (OutputStream out = getContentResolver().openOutputStream(uri)) {
-                bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+                if (out != null) {
+                    bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+                }
             } catch (Exception e) { Log.e(TAG, "Err save", e); }
         }
         frame.release();

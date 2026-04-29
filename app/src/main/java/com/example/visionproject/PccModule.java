@@ -8,6 +8,7 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class PccModule {
     private volatile double mThresholdTheta = 0.85; 
@@ -17,8 +18,8 @@ public class PccModule {
     private Mat mReferenceRoi;
     private volatile double mCurrentPcc = 1.0;
     private volatile double mCurrentCre = 0.0;
-    private volatile long mTotalFrames = 0;
-    private volatile long mDiscardedFrames = 0;
+    private final AtomicLong mTotalFrames = new AtomicLong(0);
+    private final AtomicLong mDiscardedFrames = new AtomicLong(0);
     private volatile String mStatus = "IDLE";
     private volatile int mItaPointsAfter = 0;
 
@@ -54,7 +55,7 @@ public class PccModule {
     }
 
     public boolean processFrame(Mat rgbaFrame) {
-        mTotalFrames++;
+        mTotalFrames.incrementAndGet();
         
         Mat gray = new Mat();
         Imgproc.cvtColor(rgbaFrame, gray, Imgproc.COLOR_RGBA2GRAY);
@@ -73,7 +74,7 @@ public class PccModule {
             applyRoiOverlay(rgbaFrame, currentRoi, mReferenceRoi, roiRect);
 
             if (mCurrentPcc >= mThresholdTheta) {
-                mDiscardedFrames++;
+                mDiscardedFrames.incrementAndGet();
                 mStatus = (mCurrentPcc >= THETA_IDLE) ? "IDLE" : "DISCARD";
                 shouldProcess = false;
             } else {
@@ -110,17 +111,18 @@ public class PccModule {
     }
 
     public double getDiscardRate() {
-        if (mTotalFrames == 0) return 0;
-        return (double) mDiscardedFrames / mTotalFrames * 100.0;
+        long total = mTotalFrames.get();
+        if (total == 0) return 0;
+        return (double) mDiscardedFrames.get() / total * 100.0;
     }
 
     public String getFullStatus() {
-        return String.format(Locale.US, "%s (%d/%d)", mStatus, mDiscardedFrames, mTotalFrames);
+        return String.format(Locale.US, "%s (%d/%d)", mStatus, mDiscardedFrames.get(), mTotalFrames.get());
     }
 
     public void resetStats() { 
-        mTotalFrames = 0; 
-        mDiscardedFrames = 0; 
+        mTotalFrames.set(0); 
+        mDiscardedFrames.set(0); 
         mStatus = "IDLE";
         if (mReferenceRoi != null) mReferenceRoi.release();
         mReferenceRoi = new Mat();
@@ -132,5 +134,4 @@ public class PccModule {
     public double getCurrentPcc() { return mCurrentPcc; }
     public double getCurrentCre() { return mCurrentCre; }
     public int getItaPointsAfter() { return mItaPointsAfter; }
-    public long getTotalFrames() { return mTotalFrames; }
 }
