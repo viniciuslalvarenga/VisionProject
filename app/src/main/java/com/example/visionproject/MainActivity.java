@@ -265,50 +265,52 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat rgba = inputFrame.rgba();
+        boolean isCanny = (mViewMode == 1);
 
-        if (mIsExpRunning) {
-            boolean shouldFullProcess = mPccModule.processFrame(rgba);
+        // 1. Aplicamos o Canny primeiro se estiver ON. 
+        // Isso garante que o motor PCC use bordas (mais precisão) e a visualização seja persistente.
+        if (isCanny) {
+            Mat gray = new Mat(), blur = new Mat(), edges = new Mat();
+            Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY);
+            // Blur robusto
+            Imgproc.GaussianBlur(gray, blur, new Size(7, 7), 0);
+            Imgproc.Canny(blur, edges, mCannyThreshold, mCannyThreshold * 2);
+
+            // DILATAÇÃO MAIOR (5x5): Torna as bordas muito mais grossas
+            // Isso cria uma "margem de segurança" espacial
+            Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5));
+            Imgproc.dilate(edges, edges, kernel);
+
+            if (mSaveNextFrame) {
+                mSaveNextFrame = false;
+                savePipeline(rgba.clone(), gray.clone(), blur.clone(), edges.clone());
+            }
+
+            Imgproc.cvtColor(edges, rgba, Imgproc.COLOR_GRAY2RGBA);
             
-            // Só atualiza a interface a cada 200ms para não travar o app
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - mLastUiUpdate > 200) {
-                updateDebugUI();
-                mLastUiUpdate = currentTime;
-            }
-
-            if (shouldFullProcess) {
-                if (mViewMode == 1) {
-                    // Modo Canny
-                    Mat gray = new Mat(), blur = new Mat(), edges = new Mat();
-                    Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY);
-                    Imgproc.GaussianBlur(gray, blur, new Size(5, 5), 0);
-                    Imgproc.Canny(blur, edges, mCannyThreshold, mCannyThreshold * 2);
-                    Imgproc.cvtColor(edges, rgba, Imgproc.COLOR_GRAY2RGBA);
-                    
-                    if (mSaveNextFrame) {
-                        mSaveNextFrame = false;
-                        savePipeline(rgba.clone(), gray.clone(), blur.clone(), edges.clone());
-                    }
-                    gray.release(); blur.release(); edges.release();
-                } else if (mSaveNextFrame) {
-                    mSaveNextFrame = false;
-                    saveFrame(rgba.clone());
-                }
-            } else {
-                // Caso de descarte (DPM ativado)
-                if (mSaveNextFrame) {
-                    mSaveNextFrame = false;
-                    saveFrame(rgba.clone());
-                }
-            }
-            logData();
+            kernel.release(); gray.release(); blur.release(); edges.release();
         } else if (mSaveNextFrame) {
             mSaveNextFrame = false;
             saveFrame(rgba.clone());
         }
 
+        // 2. O motor de sincronização (Experimento 1) processa o que estiver na tela (Original ou Canny)
+        if (mIsExpRunning) {
+            mPccModule.processFrame(rgba);
+            
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - mLastUiUpdate > 200) {
+                updateDebugUI();
+                mLastUiUpdate = currentTime;
+            }
+            logData();
+        }
+
         return rgba;
     }
+
+    // Método processCannyFilter removido por redundância, lógica integrada acima.
+
 
     private void updateDebugUI() {
         runOnUiThread(() -> {

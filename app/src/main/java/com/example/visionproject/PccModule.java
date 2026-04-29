@@ -16,6 +16,7 @@ public class PccModule {
     
     private Mat mReferenceRoi;
     private volatile double mCurrentPcc = 1.0;
+    private double mSmoothedPcc = 1.0; // Filtro passa-baixa para estabilidade
     private volatile double mCurrentCre = 0.0;
     private final AtomicLong mTotalFrames = new AtomicLong(0);
     private final AtomicLong mDiscardedFrames = new AtomicLong(0);
@@ -59,31 +60,32 @@ public class PccModule {
         Mat gray = new Mat();
         Imgproc.cvtColor(rgbaFrame, gray, Imgproc.COLOR_RGBA2GRAY);
         
-        // Aplica um leve blur para reduzir ruído do sensor na correlação
-        Imgproc.GaussianBlur(gray, gray, new org.opencv.core.Size(5, 5), 0);
+        // DOWNSCALING AGRESSIVO: 80x60 para ignorar ruídos finos e tremores de mão
+        Mat smallGray = new Mat();
+        org.opencv.core.Size smallSize = new org.opencv.core.Size(80, 60);
+        Imgproc.resize(gray, smallGray, smallSize);
         
-        int width = gray.cols();
-        int height = gray.rows();
-        Rect roiRect = new Rect(0, 0, width, height);
-        Mat currentRoi = new Mat(gray, roiRect);
+        Mat currentRoi = smallGray; // Já está na escala correta
 
         boolean shouldProcess = true;
 
         if (!mReferenceRoi.empty() && mReferenceRoi.size().equals(currentRoi.size())) {
-            mCurrentPcc = computePCC(currentRoi, mReferenceRoi);
+            double rawPcc = computePCC(currentRoi, mReferenceRoi);
             
-            // CORREÇÃO CRE: O risco aumenta conforme o PCC diminui
-            // Normalizado: CRE = 1.0 quando PCC atinge Theta (limite de colisão)
+            // FILTRO TEMPORAL: 70% do valor anterior + 30% do novo
+            // Isso suaviza picos causados por movimentos bruscos da mão
+            mSmoothedPcc = (mSmoothedPcc * 0.7) + (rawPcc * 0.3);
+            mCurrentPcc = mSmoothedPcc;
+            
             mCurrentCre = (1.0 - mCurrentPcc) / (1.0 - mThresholdTheta);
 
-            applyRoiOverlay(rgbaFrame, currentRoi, mReferenceRoi, roiRect);
-
+            // Só sai de DISCARD se o movimento for sustentado
             if (mCurrentPcc >= mThresholdTheta) {
                 mDiscardedFrames.incrementAndGet();
                 mStatus = (mCurrentPcc >= THETA_IDLE) ? "IDLE" : "DISCARD";
                 shouldProcess = false;
                 
-                // CORREÇÃO DRIFT: Em IDLE, atualizamos a referência para compensar ruído térmico
+                // Atualização adaptativa da referência
                 if (mCurrentPcc >= THETA_IDLE) {
                     mReferenceRoi.release();
                     mReferenceRoi = currentRoi.clone();
@@ -96,30 +98,20 @@ public class PccModule {
         } else {
             mReferenceRoi = currentRoi.clone();
             mStatus = "START";
+            mSmoothedPcc = 1.0;
         }
 
+        // Feedback Visual de borda grossa (retângulo externo)
         Scalar boxColor = mStatus.equals("PROCESS") ? new Scalar(0, 255, 0, 255) : 
                          mStatus.equals("DISCARD") ? new Scalar(255, 255, 0, 255) : new Scalar(255, 255, 255, 255);
-        Imgproc.rectangle(rgbaFrame, roiRect.tl(), roiRect.br(), boxColor, 4);
+        Imgproc.rectangle(rgbaFrame, new org.opencv.core.Point(0,0), 
+                         new org.opencv.core.Point(rgbaFrame.cols(), rgbaFrame.rows()), boxColor, 15);
 
-        // CORREÇÃO ITA: Se descartado, a atividade de processamento é 0 (ou apenas o custo do PCC)
-        mItaPointsAfter = shouldProcess ? (currentRoi.rows() * currentRoi.cols()) : 0;
+        mItaPointsAfter = shouldProcess ? (gray.rows() * gray.cols()) : 0;
         
-        currentRoi.release();
+        smallGray.release();
         gray.release();
         return shouldProcess;
-    }
-
-    private void applyRoiOverlay(Mat rgbaFrame, Mat curr, Mat ref, Rect roiRect) {
-        Mat diff = new Mat();
-        Core.absdiff(curr, ref, diff);
-        Imgproc.threshold(diff, diff, 25, 255, Imgproc.THRESH_BINARY);
-        Mat roiSubmat = rgbaFrame.submat(roiRect);
-        Mat redOverlay = new Mat(roiSubmat.size(), roiSubmat.type(), new Scalar(255, 0, 0, 150));
-        redOverlay.copyTo(roiSubmat, diff);
-        roiSubmat.release();
-        redOverlay.release();
-        diff.release();
     }
 
     public double getDiscardRate() {
