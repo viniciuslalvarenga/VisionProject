@@ -45,13 +45,13 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private PccModule mPccModule;
     private TextView mTvDebugPcc, mTvDebugStatus, mTvDebugDiscard, mTvDebugIta, mTvTimer;
     private boolean mSaveNextFrame = false;
-    private int mCannyThreshold = 50;
-    private int mViewMode = 0; // 0: Original, 1: Canny
+    private volatile int mCannyThreshold = 50;
+    private volatile int mViewMode = 0; // 0: Original, 1: Canny
 
-    private boolean mIsExpRunning = false;
+    private volatile boolean mIsExpRunning = false;
     private long mExpStartTime = 0;
-    private long mLastUiUpdate = 0; // Para limitar atualizações da UI
-    private StringBuilder mLogBuffer;
+    private volatile long mLastUiUpdate = 0; // Para limitar atualizações da UI
+    private final StringBuilder mLogBuffer = new StringBuilder();
     private final Handler mTimerHandler = new Handler(Looper.getMainLooper());
     private Runnable mTimerRunnable;
 
@@ -145,10 +145,12 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     private void startExperiment() {
         mPccModule.resetStats();
+        synchronized (mLogBuffer) {
+            mLogBuffer.setLength(0);
+            mLogBuffer.append("Seconds,PCC,CRE,Status,DiscardRate,ITA_After\n");
+        }
         mIsExpRunning = true;
         mExpStartTime = System.currentTimeMillis();
-        mLogBuffer = new StringBuilder();
-        mLogBuffer.append("Timestamp,Seconds,Phase,PCC,CRE,Status,DiscardRate,ITA_After\n");
         mTimerHandler.post(mTimerRunnable);
         Toast.makeText(this, "EXPERIMENTO INICIADO: Gravando dados...", Toast.LENGTH_SHORT).show();
     }
@@ -161,40 +163,49 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     }
 
     private void logData() {
-        if (mLogBuffer == null) return;
         long elapsedMillis = System.currentTimeMillis() - mExpStartTime;
         double seconds = elapsedMillis / 1000.0;
-        String phase = (seconds < 30) ? "PARADO" : (seconds < 60) ? "CAMINHANDO" : (seconds < 90) ? "OBSTACULO" : "FINAL";
-        mLogBuffer.append(String.format(Locale.US, "%d,%.2f,%s,%.4f,%.4f,%s,%.1f,%d\n",
-                System.currentTimeMillis(), seconds, phase,
+        
+        String entry = String.format(Locale.US, "%.2f,%.4f,%.4f,%s,%.1f,%d\n",
+                seconds,
                 mPccModule.getCurrentPcc(), mPccModule.getCurrentCre(),
                 mPccModule.getStatus(), mPccModule.getDiscardRate(),
-                mPccModule.getItaPointsAfter()));
+                mPccModule.getItaPointsAfter());
+
+        synchronized (mLogBuffer) {
+            mLogBuffer.append(entry);
+        }
     }
 
     private void saveLogToFile() {
-        if (mLogBuffer == null || mLogBuffer.length() == 0) return;
+        String data;
+        synchronized (mLogBuffer) {
+            if (mLogBuffer.length() == 0) return;
+            data = mLogBuffer.toString();
+            mLogBuffer.setLength(0);
+        }
         try {
             long timestamp = System.currentTimeMillis();
             String fileName = "Exp1_Theta_" + String.format(Locale.US, "%.2f", mPccModule.getThresholdTheta()) + "_" + timestamp + ".csv";
             ContentValues values = new ContentValues();
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
             values.put(MediaStore.MediaColumns.MIME_TYPE, "text/csv");
-            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS + "/VisionProject");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS + "/VisionProject");
+            }
 
             Uri uri = getContentResolver().insert(MediaStore.Files.getContentUri("external"), values);
             if (uri != null) {
                 try (OutputStream os = getContentResolver().openOutputStream(uri)) {
                     if (os != null) {
                         try (PrintWriter writer = new PrintWriter(os)) {
-                            writer.print(mLogBuffer.toString());
+                            writer.print(data);
                             writer.flush();
                         }
                     }
                 }
                 Toast.makeText(this, "EXPERIMENTO CONCLUÍDO\nArquivo salvo: " + fileName, Toast.LENGTH_LONG).show();
             }
-            mLogBuffer = null;
         } catch (Exception e) {
             Log.e(TAG, "Erro ao salvar log", e);
             Toast.makeText(this, "Erro ao salvar arquivo!", Toast.LENGTH_SHORT).show();
@@ -220,14 +231,18 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     @Override
     public void onPause() {
-        super.onPause();
         if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
+        super.onPause();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (OpenCVLoader.initLocal()) mOpenCvCameraView.enableView();
+        if (mOpenCvCameraView != null) {
+            if (OpenCVLoader.initLocal()) {
+                mOpenCvCameraView.enableView();
+            }
+        }
     }
 
     @Override

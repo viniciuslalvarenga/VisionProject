@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class PccModule {
     private volatile double mThresholdTheta = 0.85; 
     public static final double THETA_IDLE = 0.97;
-    private static final double Rc = 0.40;
     
     private Mat mReferenceRoi;
     private volatile double mCurrentPcc = 1.0;
@@ -60,6 +59,9 @@ public class PccModule {
         Mat gray = new Mat();
         Imgproc.cvtColor(rgbaFrame, gray, Imgproc.COLOR_RGBA2GRAY);
         
+        // Aplica um leve blur para reduzir ruído do sensor na correlação
+        Imgproc.GaussianBlur(gray, gray, new org.opencv.core.Size(5, 5), 0);
+        
         int width = gray.cols();
         int height = gray.rows();
         Rect roiRect = new Rect(0, 0, width, height);
@@ -69,7 +71,10 @@ public class PccModule {
 
         if (!mReferenceRoi.empty() && mReferenceRoi.size().equals(currentRoi.size())) {
             mCurrentPcc = computePCC(currentRoi, mReferenceRoi);
-            mCurrentCre = Rc / (1.0001 - Math.abs(mCurrentPcc));
+            
+            // CORREÇÃO CRE: O risco aumenta conforme o PCC diminui
+            // Normalizado: CRE = 1.0 quando PCC atinge Theta (limite de colisão)
+            mCurrentCre = (1.0 - mCurrentPcc) / (1.0 - mThresholdTheta);
 
             applyRoiOverlay(rgbaFrame, currentRoi, mReferenceRoi, roiRect);
 
@@ -77,6 +82,12 @@ public class PccModule {
                 mDiscardedFrames.incrementAndGet();
                 mStatus = (mCurrentPcc >= THETA_IDLE) ? "IDLE" : "DISCARD";
                 shouldProcess = false;
+                
+                // CORREÇÃO DRIFT: Em IDLE, atualizamos a referência para compensar ruído térmico
+                if (mCurrentPcc >= THETA_IDLE) {
+                    mReferenceRoi.release();
+                    mReferenceRoi = currentRoi.clone();
+                }
             } else {
                 mStatus = "PROCESS";
                 mReferenceRoi.release();
@@ -91,7 +102,8 @@ public class PccModule {
                          mStatus.equals("DISCARD") ? new Scalar(255, 255, 0, 255) : new Scalar(255, 255, 255, 255);
         Imgproc.rectangle(rgbaFrame, roiRect.tl(), roiRect.br(), boxColor, 4);
 
-        mItaPointsAfter = (int) (currentRoi.rows() * currentRoi.cols() * (1.0 - Math.abs(mCurrentPcc)));
+        // CORREÇÃO ITA: Se descartado, a atividade de processamento é 0 (ou apenas o custo do PCC)
+        mItaPointsAfter = shouldProcess ? (currentRoi.rows() * currentRoi.cols()) : 0;
         
         currentRoi.release();
         gray.release();
