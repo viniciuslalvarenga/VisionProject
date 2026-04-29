@@ -309,24 +309,27 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         return rgba;
     }
 
-    // Método processCannyFilter removido por redundância, lógica integrada acima.
-
+    // Lógica integrada no onCameraFrame para evitar redundância.
 
     private void updateDebugUI() {
-        runOnUiThread(() -> {
-            String fullStatus = mPccModule.getFullStatus();
-            double pcc = mPccModule.getCurrentPcc();
-            double cre = mPccModule.getCurrentCre();
-            double discardRate = mPccModule.getDiscardRate();
-            int ita = mPccModule.getItaPointsAfter();
+        final double pcc = mPccModule.getCurrentPcc();
+        final double cre = mPccModule.getCurrentCre();
+        final String fullStatus = mPccModule.getFullStatus();
+        final String status = mPccModule.getStatus();
+        final double discardRate = mPccModule.getDiscardRate();
+        final int ita = mPccModule.getItaPointsAfter();
 
+        runOnUiThread(() -> {
             mTvDebugPcc.setText(getString(R.string.pcc_cre_label, pcc, cre));
             mTvDebugStatus.setText(getString(R.string.status_label, fullStatus));
             
-            String status = mPccModule.getStatus();
-            if ("IDLE".equals(status)) mTvDebugStatus.setTextColor(Color.WHITE);
-            else if ("DISCARD".equals(status)) mTvDebugStatus.setTextColor(Color.YELLOW);
-            else mTvDebugStatus.setTextColor(Color.GREEN);
+            if ("IDLE".equals(status)) {
+                mTvDebugStatus.setTextColor(Color.WHITE);
+            } else if ("DISCARD".equals(status)) {
+                mTvDebugStatus.setTextColor(Color.YELLOW);
+            } else if ("PROCESS".equals(status)) {
+                mTvDebugStatus.setTextColor(Color.GREEN);
+            }
 
             mTvDebugDiscard.setText(String.format(Locale.US, "Descarte: %.1f%%", discardRate));
             mTvDebugIta.setText(String.format(Locale.US, "ITA: %d pts", ita));
