@@ -248,41 +248,46 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat rgba = inputFrame.rgba();
 
-        boolean shouldFullProcess = mPccModule.processFrame(rgba);
-        
-        // Só atualiza a interface a cada 200ms para não travar o app
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - mLastUiUpdate > 200) {
-            updateDebugUI();
-            mLastUiUpdate = currentTime;
-        }
+        if (mIsExpRunning) {
+            boolean shouldFullProcess = mPccModule.processFrame(rgba);
+            
+            // Só atualiza a interface a cada 200ms para não travar o app
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - mLastUiUpdate > 200) {
+                updateDebugUI();
+                mLastUiUpdate = currentTime;
+            }
 
-        if (shouldFullProcess) {
-            if (mViewMode == 1) {
-                // Modo Canny
-                Mat gray = new Mat(), blur = new Mat(), edges = new Mat();
-                Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY);
-                Imgproc.GaussianBlur(gray, blur, new Size(5, 5), 0);
-                Imgproc.Canny(blur, edges, mCannyThreshold, mCannyThreshold * 2);
-                Imgproc.cvtColor(edges, rgba, Imgproc.COLOR_GRAY2RGBA);
-                
+            if (shouldFullProcess) {
+                if (mViewMode == 1) {
+                    // Modo Canny
+                    Mat gray = new Mat(), blur = new Mat(), edges = new Mat();
+                    Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY);
+                    Imgproc.GaussianBlur(gray, blur, new Size(5, 5), 0);
+                    Imgproc.Canny(blur, edges, mCannyThreshold, mCannyThreshold * 2);
+                    Imgproc.cvtColor(edges, rgba, Imgproc.COLOR_GRAY2RGBA);
+                    
+                    if (mSaveNextFrame) {
+                        mSaveNextFrame = false;
+                        savePipeline(rgba.clone(), gray.clone(), blur.clone(), edges.clone());
+                    }
+                    gray.release(); blur.release(); edges.release();
+                } else if (mSaveNextFrame) {
+                    mSaveNextFrame = false;
+                    saveFrame(rgba.clone());
+                }
+            } else {
+                // Caso de descarte (DPM ativado)
                 if (mSaveNextFrame) {
                     mSaveNextFrame = false;
-                    savePipeline(rgba.clone(), gray.clone(), blur.clone(), edges.clone());
+                    saveFrame(rgba.clone());
                 }
-                gray.release(); blur.release(); edges.release();
-            } else if (mSaveNextFrame) {
-                mSaveNextFrame = false;
-                saveFrame(rgba.clone());
             }
-        } else {
-            // Caso de descarte (DPM ativado)
-            if (mSaveNextFrame) {
-                mSaveNextFrame = false;
-                saveFrame(rgba.clone());
-            }
+            logData();
+        } else if (mSaveNextFrame) {
+            mSaveNextFrame = false;
+            saveFrame(rgba.clone());
         }
-        if (mIsExpRunning) logData();
 
         return rgba;
     }
