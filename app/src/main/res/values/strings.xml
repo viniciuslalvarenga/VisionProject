@@ -11,4 +11,19 @@
     <string name="opencv_init_failed">OpenCV initialization failed</string>
     <string name="camera_permission_required">Camera permission is required</string>
     <string name="timer_default">00:00</string>
+    <string name="pcc_default">PCC: 0.0000</string>
+    <string name="status_default">Status: IDLE</string>
+    <string name="discard_default">Descarte: 0%%</string>
+    <string name="ita_default">ITA: 0 pts</string>
+    <string name="reset_button">Reset</string>
+    <string name="record_on">CAM OFF</string>
+    <string name="record_off">CAM ON</string>
+    <string name="capture_button">FOTO</string>
+    <string name="canny_switch">CANNY</string>
+    <string name="exp_started">EXPERIMENTO INICIADO: Gravando dados&#8230;</string>
+    <string name="exp_finished">EXPERIMENTO CONCLUÍDO\nArquivo salvo: %1$s</string>
+    <string name="save_error">Erro ao salvar arquivo!</string>
+    <string name="pipeline_saved_toast">Pipeline Salvo</string>
+    <string name="discard_format">Descarte: %1$.1f%%</string>
+    <string name="ita_format">ITA: %1$d pts</string>
 </resources>

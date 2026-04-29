@@ -44,7 +44,7 @@
             android:id="@+id/tv_debug_pcc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="PCC: 0.0000"
+            android:text="@string/pcc_default"
             android:textColor="#00FF00"
             android:textSize="10sp" />
 
@@ -52,7 +52,7 @@
             android:id="@+id/tv_debug_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Status: IDLE"
+            android:text="@string/status_default"
             android:textColor="#FFFFFF"
             android:textSize="10sp" />
 
@@ -60,7 +60,7 @@
             android:id="@+id/tv_debug_discard"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Descarte: 0%"
+            android:text="@string/discard_default"
             android:textColor="#FFFF00"
             android:textSize="10sp" />
 
@@ -68,7 +68,7 @@
             android:id="@+id/tv_debug_ita"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ITA: 0 pts"
+            android:text="@string/ita_default"
             android:textColor="#00FFFF"
             android:textSize="10sp" />
     </LinearLayout>
@@ -86,9 +86,10 @@
             android:id="@+id/tv_theta_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="PCC Threshold (θ): 0.85"
+            android:text="@string/pcc_threshold_label"
             android:textColor="#FFFF00"
-            android:textSize="10sp" />
+            android:textSize="10sp"
+            tools:ignore="SmallSp" />
         <SeekBar
             android:id="@+id/sb_theta"
             android:layout_width="match_parent"
@@ -106,17 +107,18 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Canny Threshold: 50"
+                android:text="@string/canny_threshold_label"
                 android:textColor="#FFFFFF"
-                android:textSize="10sp" />
-            <Switch
+                android:textSize="10sp"
+                tools:ignore="SmallSp" />
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/sw_canny"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="CANNY"
+                android:text="@string/canny_switch"
                 android:textColor="#FFFFFF"
                 android:textSize="10sp"
-                tools:ignore="UseSwitchCompatPort" />
+                tools:ignore="SmallSp" />
         </LinearLayout>
 
         <SeekBar
@@ -140,25 +142,28 @@
             android:id="@+id/btn_reset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Reset"
-            android:textSize="10sp" />
+            android:text="@string/reset_button"
+            android:textSize="10sp"
+            tools:ignore="SmallSp" />
 
         <ToggleButton
             android:id="@+id/btn_record"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textOn="CAM OFF"
-            android:textOff="CAM ON"
+            android:textOn="@string/record_on"
+            android:textOff="@string/record_off"
             android:backgroundTint="#F44336"
             android:textColor="#FFFFFF"
-            android:textSize="10sp" />
+            android:textSize="10sp"
+            tools:ignore="SmallSp" />
 
         <Button
             android:id="@+id/btn_capture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="FOTO"
-            android:textSize="10sp" />
+            android:text="@string/capture_button"
+            android:textSize="10sp"
+            tools:ignore="SmallSp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

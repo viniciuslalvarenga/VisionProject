@@ -16,13 +16,13 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -45,16 +45,38 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private CameraBridgeViewBase mOpenCvCameraView;
     private PccModule mPccModule;
     private TextView mTvDebugPcc, mTvDebugStatus, mTvDebugDiscard, mTvDebugIta, mTvTimer;
-    private boolean mSaveNextFrame = false;
+    private volatile boolean mSaveNextFrame = false;
     private volatile int mCannyThreshold = 50;
     private volatile int mViewMode = 0; // 0: Original, 1: Canny
+
+    private Mat mGray;
+    private Mat mBlur;
+    private Mat mEdges;
+    private Mat mDilateKernel;
 
     private volatile boolean mIsExpRunning = false;
     private long mExpStartTime = 0;
     private volatile long mLastUiUpdate = 0; // Para limitar atualizações da UI
     private final StringBuilder mLogBuffer = new StringBuilder();
     private final Handler mTimerHandler = new Handler(Looper.getMainLooper());
-    private Runnable mTimerRunnable;
+    private final Runnable mTimerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!mIsExpRunning) return;
+            long millis = System.currentTimeMillis() - mExpStartTime;
+            int seconds = (int) (millis / 1000);
+            int minutes = seconds / 60;
+            int sec = seconds % 60;
+
+            mTvTimer.setText(String.format(Locale.US, "%02d:%02d", minutes, sec));
+            if (seconds >= 120) {
+                ToggleButton btnRecord = findViewById(R.id.btn_record);
+                if (btnRecord != null) btnRecord.setChecked(false);
+                return;
+            }
+            mTimerHandler.postDelayed(this, 500);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         findViewById(R.id.btn_reset).setOnClickListener(v -> mPccModule.resetStats());
         
-        Switch swCanny = findViewById(R.id.sw_canny);
+        SwitchCompat swCanny = findViewById(R.id.sw_canny);
         if (swCanny != null) {
             swCanny.setOnCheckedChangeListener((v, isChecked) -> mViewMode = isChecked ? 1 : 0);
         }
@@ -124,24 +146,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         });
 
         findViewById(R.id.btn_capture).setOnClickListener(v -> mSaveNextFrame = true);
-
-        mTimerRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (!mIsExpRunning) return;
-                long millis = System.currentTimeMillis() - mExpStartTime;
-                int seconds = (int) (millis / 1000);
-                int minutes = seconds / 60;
-                int sec = seconds % 60;
-
-                mTvTimer.setText(String.format(Locale.US, "%02d:%02d", minutes, sec));
-                if (seconds >= 120) {
-                    btnRecord.setChecked(false);
-                    return;
-                }
-                mTimerHandler.postDelayed(this, 500);
-            }
-        };
 
         checkCameraPermission();
     }
@@ -155,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         mIsExpRunning = true;
         mExpStartTime = System.currentTimeMillis();
         mTimerHandler.post(mTimerRunnable);
-        Toast.makeText(this, "EXPERIMENTO INICIADO: Gravando dados...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.exp_started, Toast.LENGTH_SHORT).show();
     }
 
     private void stopExperiment() {
@@ -207,11 +211,11 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                         }
                     }
                 }
-                Toast.makeText(this, "EXPERIMENTO CONCLUÍDO\nArquivo salvo: " + fileName, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.exp_finished, fileName), Toast.LENGTH_LONG).show();
             }
         } catch (Exception e) {
             Log.e(TAG, "Erro ao salvar log", e);
-            Toast.makeText(this, "Erro ao salvar arquivo!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.save_error, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -256,10 +260,18 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     @Override
     public void onCameraViewStarted(int width, int height) {
+        mGray = new Mat();
+        mBlur = new Mat();
+        mEdges = new Mat();
+        mDilateKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5));
     }
 
     @Override
     public void onCameraViewStopped() {
+        if (mGray != null) mGray.release();
+        if (mBlur != null) mBlur.release();
+        if (mEdges != null) mEdges.release();
+        if (mDilateKernel != null) mDilateKernel.release();
     }
 
     @Override
@@ -267,34 +279,24 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         Mat rgba = inputFrame.rgba();
         boolean isCanny = (mViewMode == 1);
 
-        // 1. Aplicamos o Canny primeiro se estiver ON. 
-        // Isso garante que o motor PCC use bordas (mais precisão) e a visualização seja persistente.
         if (isCanny) {
-            Mat gray = new Mat(), blur = new Mat(), edges = new Mat();
-            Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY);
-            // Blur robusto
-            Imgproc.GaussianBlur(gray, blur, new Size(7, 7), 0);
-            Imgproc.Canny(blur, edges, mCannyThreshold, mCannyThreshold * 2);
+            Imgproc.cvtColor(rgba, mGray, Imgproc.COLOR_RGBA2GRAY);
+            Imgproc.GaussianBlur(mGray, mBlur, new Size(7, 7), 0);
+            Imgproc.Canny(mBlur, mEdges, mCannyThreshold, mCannyThreshold * 2.0);
 
-            // DILATAÇÃO MAIOR (5x5): Torna as bordas muito mais grossas
-            // Isso cria uma "margem de segurança" espacial
-            Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5));
-            Imgproc.dilate(edges, edges, kernel);
+            Imgproc.dilate(mEdges, mEdges, mDilateKernel);
 
             if (mSaveNextFrame) {
                 mSaveNextFrame = false;
-                savePipeline(rgba.clone(), gray.clone(), blur.clone(), edges.clone());
+                savePipeline(rgba.clone(), mGray.clone(), mBlur.clone(), mEdges.clone());
             }
 
-            Imgproc.cvtColor(edges, rgba, Imgproc.COLOR_GRAY2RGBA);
-            
-            kernel.release(); gray.release(); blur.release(); edges.release();
+            Imgproc.cvtColor(mEdges, rgba, Imgproc.COLOR_GRAY2RGBA);
         } else if (mSaveNextFrame) {
             mSaveNextFrame = false;
             saveFrame(rgba.clone());
         }
 
-        // 2. O motor de sincronização (Experimento 1) processa o que estiver na tela (Original ou Canny)
         if (mIsExpRunning) {
             mPccModule.processFrame(rgba);
             
@@ -331,8 +333,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 mTvDebugStatus.setTextColor(Color.GREEN);
             }
 
-            mTvDebugDiscard.setText(String.format(Locale.US, "Descarte: %.1f%%", discardRate));
-            mTvDebugIta.setText(String.format(Locale.US, "ITA: %d pts", ita));
+            mTvDebugDiscard.setText(getString(R.string.discard_format, discardRate));
+            mTvDebugIta.setText(getString(R.string.ita_format, ita));
         });
     }
 
@@ -342,7 +344,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         saveFrame(gray, "p_gray_" + ts + ".jpg");
         saveFrame(blur, "p_blur_" + ts + ".jpg");
         saveFrame(edges, "p_edge_" + ts + ".jpg");
-        runOnUiThread(() -> Toast.makeText(this, "Pipeline Salvo", Toast.LENGTH_SHORT).show());
+        runOnUiThread(() -> Toast.makeText(this, R.string.pipeline_saved_toast, Toast.LENGTH_SHORT).show());
     }
 
     private void saveFrame(Mat frame) { saveFrame(frame, "cap_" + System.currentTimeMillis() + ".jpg"); }
@@ -364,6 +366,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 }
             } catch (Exception e) { Log.e(TAG, "Err save", e); }
         }
+        bmp.recycle();
         frame.release();
     }
 }

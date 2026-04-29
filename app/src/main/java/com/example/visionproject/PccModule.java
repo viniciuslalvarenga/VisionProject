@@ -3,8 +3,8 @@ package com.example.visionproject;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.Locale;
@@ -12,36 +12,45 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class PccModule {
     private volatile double mThresholdTheta = 0.85; 
-    public static final double THETA_IDLE = 0.97;
+    private static final double THETA_IDLE = 0.97;
     
     private Mat mReferenceRoi;
+    private final Mat mF1 = new Mat();
+    private final Mat mF2 = new Mat();
+    private final Mat mGray = new Mat();
+    private final Mat mSmallGray = new Mat();
+    private final Size mSmallSize = new Size(80, 60);
+    
     private volatile double mCurrentPcc = 1.0;
-    private double mSmoothedPcc = 1.0; // Filtro passa-baixa para estabilidade
+    private double mSmoothedPcc = 1.0; 
     private volatile double mCurrentCre = 0.0;
     private final AtomicLong mTotalFrames = new AtomicLong(0);
     private final AtomicLong mDiscardedFrames = new AtomicLong(0);
     private volatile String mStatus = "IDLE";
     private volatile int mItaPointsAfter = 0;
 
+    private final Scalar mColorProcess = new Scalar(0, 255, 0, 255);
+    private final Scalar mColorDiscard = new Scalar(255, 255, 0, 255);
+    private final Scalar mColorIdle = new Scalar(255, 255, 255, 255);
+
     public PccModule() {
         mReferenceRoi = new Mat();
     }
 
-    public double computePCC(Mat m1, Mat m2) {
+    private double computePCC(Mat m1, Mat m2) {
         if (m1.empty() || m2.empty()) return 1.0;
         
-        Mat f1 = new Mat(), f2 = new Mat();
-        m1.convertTo(f1, CvType.CV_32F);
-        m2.convertTo(f2, CvType.CV_32F);
+        m1.convertTo(mF1, CvType.CV_32F);
+        m2.convertTo(mF2, CvType.CV_32F);
         
-        Scalar mean1 = Core.mean(f1);
-        Scalar mean2 = Core.mean(f2);
-        Core.subtract(f1, mean1, f1);
-        Core.subtract(f2, mean2, f2);
+        Scalar mean1 = Core.mean(mF1);
+        Scalar mean2 = Core.mean(mF2);
+        Core.subtract(mF1, mean1, mF1);
+        Core.subtract(mF2, mean2, mF2);
         
-        double numerator = f1.dot(f2);
-        double den1 = f1.dot(f1);
-        double den2 = f2.dot(f2);
+        double numerator = mF1.dot(mF2);
+        double den1 = mF1.dot(mF1);
+        double den2 = mF2.dot(mF2);
         
         double pcc = 1.0;
         double denominator = Math.sqrt(den1 * den2);
@@ -49,68 +58,51 @@ public class PccModule {
             pcc = numerator / denominator;
         }
         
-        f1.release();
-        f2.release();
         return pcc;
     }
 
     public boolean processFrame(Mat rgbaFrame) {
         mTotalFrames.incrementAndGet();
         
-        Mat gray = new Mat();
-        Imgproc.cvtColor(rgbaFrame, gray, Imgproc.COLOR_RGBA2GRAY);
+        Imgproc.cvtColor(rgbaFrame, mGray, Imgproc.COLOR_RGBA2GRAY);
+        Imgproc.resize(mGray, mSmallGray, mSmallSize);
         
-        // DOWNSCALING AGRESSIVO: 80x60 para ignorar ruídos finos e tremores de mão
-        Mat smallGray = new Mat();
-        org.opencv.core.Size smallSize = new org.opencv.core.Size(80, 60);
-        Imgproc.resize(gray, smallGray, smallSize);
-        
-        Mat currentRoi = smallGray; // Já está na escala correta
-
         boolean shouldProcess = true;
 
-        if (!mReferenceRoi.empty() && mReferenceRoi.size().equals(currentRoi.size())) {
-            double rawPcc = computePCC(currentRoi, mReferenceRoi);
+        if (!mReferenceRoi.empty() && mReferenceRoi.size().equals(mSmallGray.size())) {
+            double rawPcc = computePCC(mSmallGray, mReferenceRoi);
             
-            // FILTRO TEMPORAL: 70% do valor anterior + 30% do novo
-            // Isso suaviza picos causados por movimentos bruscos da mão
             mSmoothedPcc = (mSmoothedPcc * 0.7) + (rawPcc * 0.3);
             mCurrentPcc = mSmoothedPcc;
             
             mCurrentCre = (1.0 - mCurrentPcc) / (1.0 - mThresholdTheta);
 
-            // Só sai de DISCARD se o movimento for sustentado
             if (mCurrentPcc >= mThresholdTheta) {
                 mDiscardedFrames.incrementAndGet();
                 mStatus = (mCurrentPcc >= THETA_IDLE) ? "IDLE" : "DISCARD";
                 shouldProcess = false;
                 
-                // Atualização adaptativa da referência
                 if (mCurrentPcc >= THETA_IDLE) {
-                    mReferenceRoi.release();
-                    mReferenceRoi = currentRoi.clone();
+                    mSmallGray.copyTo(mReferenceRoi);
                 }
             } else {
                 mStatus = "PROCESS";
-                mReferenceRoi.release();
-                mReferenceRoi = currentRoi.clone();
+                mSmallGray.copyTo(mReferenceRoi);
             }
         } else {
-            mReferenceRoi = currentRoi.clone();
+            mSmallGray.copyTo(mReferenceRoi);
             mStatus = "START";
             mSmoothedPcc = 1.0;
         }
 
-        // Feedback Visual de borda grossa (retângulo externo)
-        Scalar boxColor = mStatus.equals("PROCESS") ? new Scalar(0, 255, 0, 255) : 
-                         mStatus.equals("DISCARD") ? new Scalar(255, 255, 0, 255) : new Scalar(255, 255, 255, 255);
+        Scalar boxColor = mStatus.equals("PROCESS") ? mColorProcess : 
+                         mStatus.equals("DISCARD") ? mColorDiscard : mColorIdle;
+        
         Imgproc.rectangle(rgbaFrame, new org.opencv.core.Point(0,0), 
                          new org.opencv.core.Point(rgbaFrame.cols(), rgbaFrame.rows()), boxColor, 15);
 
-        mItaPointsAfter = shouldProcess ? (gray.rows() * gray.cols()) : 0;
+        mItaPointsAfter = shouldProcess ? (mGray.rows() * mGray.cols()) : 0;
         
-        smallGray.release();
-        gray.release();
         return shouldProcess;
     }
 
