@@ -61,8 +61,7 @@ public class PccModule {
         
         int width = gray.cols();
         int height = gray.rows();
-        int roiSize = Math.min(width, height) / 3;
-        Rect roiRect = new Rect((width - roiSize) / 2, (height - roiSize) / 2, roiSize, roiSize);
+        Rect roiRect = new Rect(0, 0, width, height);
         Mat currentRoi = new Mat(gray, roiRect);
 
         boolean shouldProcess = true;

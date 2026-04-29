@@ -170,15 +170,6 @@
             android:layout_height="wrap_content"
             android:text="FOTO"
             android:textSize="10sp" />
-
-        <ToggleButton
-            android:id="@+id/btn_process"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textOn="PROC ON"
-            android:textOff="PROC OFF"
-            android:checked="true"
-            android:textSize="10sp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

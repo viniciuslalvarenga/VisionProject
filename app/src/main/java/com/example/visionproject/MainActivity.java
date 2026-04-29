@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private Mat mRgbaFrame;
     private boolean mSaveNextFrame = false;
     private int mCannyThreshold = 50;
-    private boolean mIsProcessing = true;
     private int mViewMode = 0; // 0: Original, 1: Canny
 
     private boolean mIsExpRunning = false;
@@ -113,9 +112,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         findViewById(R.id.btn_reset).setOnClickListener(v -> mPccModule.resetStats());
         
-        ToggleButton btnProcess = findViewById(R.id.btn_process);
-        btnProcess.setOnCheckedChangeListener((v, isChecked) -> mIsProcessing = isChecked);
-
         findViewById(R.id.rb_view_orig).setOnClickListener(v -> mViewMode = 0);
         findViewById(R.id.rb_view_canny).setOnClickListener(v -> mViewMode = 1);
 
@@ -252,47 +248,41 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat rgba = inputFrame.rgba();
 
-        if (mIsProcessing) {
-            boolean shouldFullProcess = mPccModule.processFrame(rgba);
-            
-            // Só atualiza a interface a cada 200ms para não travar o app
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - mLastUiUpdate > 200) {
-                updateDebugUI();
-                mLastUiUpdate = currentTime;
-            }
+        boolean shouldFullProcess = mPccModule.processFrame(rgba);
+        
+        // Só atualiza a interface a cada 200ms para não travar o app
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - mLastUiUpdate > 200) {
+            updateDebugUI();
+            mLastUiUpdate = currentTime;
+        }
 
-            if (shouldFullProcess) {
-                if (mViewMode == 1) {
-                    // Modo Canny: Aplicamos no ROI ou no frame todo? 
-                    // Para o experimento, aplicaremos no frame todo para visualização
-                    Mat gray = new Mat(), blur = new Mat(), edges = new Mat();
-                    Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY);
-                    Imgproc.GaussianBlur(gray, blur, new Size(5, 5), 0);
-                    Imgproc.Canny(blur, edges, mCannyThreshold, mCannyThreshold * 2);
-                    Imgproc.cvtColor(edges, rgba, Imgproc.COLOR_GRAY2RGBA);
-                    
-                    if (mSaveNextFrame) {
-                        mSaveNextFrame = false;
-                        savePipeline(rgba.clone(), gray.clone(), blur.clone(), edges.clone());
-                    }
-                    gray.release(); blur.release(); edges.release();
-                } else if (mSaveNextFrame) {
-                    mSaveNextFrame = false;
-                    saveFrame(rgba.clone());
-                }
-            } else {
-                // Caso de descarte (DPM ativado)
+        if (shouldFullProcess) {
+            if (mViewMode == 1) {
+                // Modo Canny
+                Mat gray = new Mat(), blur = new Mat(), edges = new Mat();
+                Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY);
+                Imgproc.GaussianBlur(gray, blur, new Size(5, 5), 0);
+                Imgproc.Canny(blur, edges, mCannyThreshold, mCannyThreshold * 2);
+                Imgproc.cvtColor(edges, rgba, Imgproc.COLOR_GRAY2RGBA);
+                
                 if (mSaveNextFrame) {
                     mSaveNextFrame = false;
-                    saveFrame(rgba.clone());
+                    savePipeline(rgba.clone(), gray.clone(), blur.clone(), edges.clone());
                 }
+                gray.release(); blur.release(); edges.release();
+            } else if (mSaveNextFrame) {
+                mSaveNextFrame = false;
+                saveFrame(rgba.clone());
             }
-            if (mIsExpRunning) logData();
-        } else if (mSaveNextFrame) {
-            mSaveNextFrame = false;
-            saveFrame(rgba.clone());
+        } else {
+            // Caso de descarte (DPM ativado)
+            if (mSaveNextFrame) {
+                mSaveNextFrame = false;
+                saveFrame(rgba.clone());
+            }
         }
+        if (mIsExpRunning) logData();
 
         return rgba;
     }
