@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private PccModule mPccModule;
     private TextView mTvDebugPcc, mTvDebugStatus, mTvDebugDiscard, mTvDebugIta, mTvTimer;
     private volatile boolean mSaveNextFrame = false;
-    private volatile int mCannyThreshold = 50;
+    private volatile int mCannyThreshold = 85;
     private volatile int mViewMode = 0; // 0: Original, 1: Canny
 
     private Mat mGray;
@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         SeekBar sbThreshold = findViewById(R.id.sb_threshold);
         TextView tvThreshold = findViewById(R.id.tv_threshold);
         if (sbThreshold != null && tvThreshold != null) {
+            tvThreshold.setText(getString(R.string.canny_threshold_label, mCannyThreshold));
             sbThreshold.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -120,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         SeekBar sbTheta = findViewById(R.id.sb_theta);
         TextView tvThetaLabel = findViewById(R.id.tv_theta_label);
         if (sbTheta != null && tvThetaLabel != null) {
+            tvThetaLabel.setText(getString(R.string.pcc_threshold_label, mPccModule.getThresholdTheta()));
             sbTheta.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
