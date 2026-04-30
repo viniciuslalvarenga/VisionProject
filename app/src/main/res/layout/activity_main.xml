@@ -21,7 +21,7 @@
         android:layout_marginTop="16dp"
         android:background="#A0000000"
         android:padding="8dp"
-        android:text="00:00"
+        android:text="@string/timer_default"
         android:textColor="#FF0000"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:text="@string/pcc_default"
             android:textColor="#00FF00"
-            android:textSize="10sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/tv_debug_status"
@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:text="@string/status_default"
             android:textColor="#FFFFFF"
-            android:textSize="10sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/tv_debug_discard"
@@ -62,7 +62,7 @@
             android:layout_height="wrap_content"
             android:text="@string/discard_default"
             android:textColor="#FFFF00"
-            android:textSize="10sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/tv_debug_ita"
@@ -70,7 +70,7 @@
             android:layout_height="wrap_content"
             android:text="@string/ita_default"
             android:textColor="#00FFFF"
-            android:textSize="10sp" />
+            android:textSize="11sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -88,7 +88,7 @@
             android:layout_height="wrap_content"
             android:text="@string/pcc_threshold_label"
             android:textColor="#FFFF00"
-            android:textSize="10sp"
+            android:textSize="11sp"
             tools:ignore="SmallSp" />
         <SeekBar
             android:id="@+id/sb_theta"
@@ -109,7 +109,7 @@
                 android:layout_weight="1"
                 android:text="@string/canny_threshold_label"
                 android:textColor="#FFFFFF"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 tools:ignore="SmallSp" />
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/sw_canny"
@@ -117,7 +117,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/canny_switch"
                 android:textColor="#FFFFFF"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 tools:ignore="SmallSp" />
         </LinearLayout>
 
@@ -143,7 +143,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/reset_button"
-            android:textSize="10sp"
+            android:textSize="11sp"
             tools:ignore="SmallSp" />
 
         <ToggleButton
@@ -154,7 +154,7 @@
             android:textOff="@string/record_off"
             android:backgroundTint="#F44336"
             android:textColor="#FFFFFF"
-            android:textSize="10sp"
+            android:textSize="11sp"
             tools:ignore="SmallSp" />
 
         <Button
@@ -162,7 +162,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/capture_button"
-            android:textSize="10sp"
+            android:textSize="11sp"
             tools:ignore="SmallSp" />
     </LinearLayout>
 
