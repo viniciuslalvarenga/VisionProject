@@ -15,6 +15,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,7 +23,6 @@ import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -136,9 +136,16 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         findViewById(R.id.btn_reset).setOnClickListener(v -> mPccModule.resetStats());
         
-        SwitchCompat swCanny = findViewById(R.id.sw_canny);
-        if (swCanny != null) {
-            swCanny.setOnCheckedChangeListener((v, isChecked) -> mViewMode = isChecked ? 1 : 0);
+        Button btnViewMode = findViewById(R.id.btn_view_mode);
+        if (btnViewMode != null) {
+            btnViewMode.setOnClickListener(v -> {
+                mViewMode = (mViewMode + 1) % 3;
+                switch (mViewMode) {
+                    case 0: btnViewMode.setText(R.string.view_mode_off); break;
+                    case 1: btnViewMode.setText(R.string.view_mode_gauss); break;
+                    case 2: btnViewMode.setText(R.string.view_mode_canny); break;
+                }
+            });
         }
 
         ToggleButton btnRecord = findViewById(R.id.btn_record);
@@ -279,22 +286,21 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat rgba = inputFrame.rgba();
-        boolean isCanny = (mViewMode == 1);
 
-        if (isCanny) {
+        if (mViewMode != 0) {
             Imgproc.cvtColor(rgba, mGray, Imgproc.COLOR_RGBA2GRAY);
             Imgproc.GaussianBlur(mGray, mBlur, new Size(7, 7), 0);
-            Imgproc.Canny(mBlur, mEdges, mCannyThreshold, mCannyThreshold * 2.0);
 
-            Imgproc.dilate(mEdges, mEdges, mDilateKernel);
-
-            if (mSaveNextFrame) {
-                mSaveNextFrame = false;
-                savePipeline(rgba.clone(), mGray.clone(), mBlur.clone(), mEdges.clone());
+            if (mViewMode == 2) { // CANNY mode (Gauss + Canny)
+                Imgproc.Canny(mBlur, mEdges, mCannyThreshold, mCannyThreshold * 2.0);
+                Imgproc.dilate(mEdges, mEdges, mDilateKernel);
+                Imgproc.cvtColor(mEdges, rgba, Imgproc.COLOR_GRAY2RGBA);
+            } else { // GAUSS mode
+                Imgproc.cvtColor(mBlur, rgba, Imgproc.COLOR_GRAY2RGBA);
             }
+        }
 
-            Imgproc.cvtColor(mEdges, rgba, Imgproc.COLOR_GRAY2RGBA);
-        } else if (mSaveNextFrame) {
+        if (mSaveNextFrame) {
             mSaveNextFrame = false;
             saveFrame(rgba.clone());
         }
@@ -365,6 +371,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             try (OutputStream out = getContentResolver().openOutputStream(uri)) {
                 if (out != null) {
                     bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
+                    runOnUiThread(() -> Toast.makeText(this, R.string.photo_saved_toast, Toast.LENGTH_SHORT).show());
                 }
             } catch (Exception e) { Log.e(TAG, "Err save", e); }
         }

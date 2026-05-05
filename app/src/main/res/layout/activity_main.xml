@@ -111,12 +111,11 @@
                 android:textColor="#FFFFFF"
                 android:textSize="11sp"
                 tools:ignore="SmallSp" />
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/sw_canny"
+            <Button
+                android:id="@+id/btn_view_mode"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/canny_switch"
-                android:textColor="#FFFFFF"
+                android:text="@string/view_mode_off"
                 android:textSize="11sp"
                 tools:ignore="SmallSp" />
         </LinearLayout>

@@ -19,11 +19,14 @@
     <string name="record_on">CAM OFF</string>
     <string name="record_off">CAM ON</string>
     <string name="capture_button">FOTO</string>
-    <string name="canny_switch">CANNY</string>
+    <string name="view_mode_off">OFF</string>
+    <string name="view_mode_gauss">GAUSS</string>
+    <string name="view_mode_canny">CANNY</string>
     <string name="exp_started">EXPERIMENTO INICIADO: Gravando dados&#8230;</string>
     <string name="exp_finished">EXPERIMENTO CONCLUÍDO\nArquivo salvo: %1$s</string>
     <string name="save_error">Erro ao salvar arquivo!</string>
     <string name="pipeline_saved_toast">Pipeline Salvo</string>
+    <string name="photo_saved_toast">Foto salva!</string>
     <string name="discard_format">Descarte: %1$.1f%%</string>
     <string name="ita_format">ITA: %1$d pts</string>
 </resources>
