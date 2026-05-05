@@ -36,6 +36,7 @@ import org.opencv.imgproc.Imgproc;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -47,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private TextView mTvDebugPcc, mTvDebugStatus, mTvDebugDiscard, mTvDebugIta, mTvTimer;
     private volatile boolean mSaveNextFrame = false;
     private volatile int mCannyThreshold = 85;
-    private volatile int mViewMode = 0; // 0: Original, 1: Canny
+    private final AtomicInteger mViewMode = new AtomicInteger(0); // 0: Original, 1: Gauss, 2: Canny
 
     private Mat mGray;
     private Mat mBlur;
@@ -139,8 +140,9 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         Button btnViewMode = findViewById(R.id.btn_view_mode);
         if (btnViewMode != null) {
             btnViewMode.setOnClickListener(v -> {
-                mViewMode = (mViewMode + 1) % 3;
-                switch (mViewMode) {
+                int nextMode = (mViewMode.get() + 1) % 3;
+                mViewMode.set(nextMode);
+                switch (nextMode) {
                     case 0: btnViewMode.setText(R.string.view_mode_off); break;
                     case 1: btnViewMode.setText(R.string.view_mode_gauss); break;
                     case 2: btnViewMode.setText(R.string.view_mode_canny); break;
@@ -286,12 +288,13 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat rgba = inputFrame.rgba();
+        int mode = mViewMode.get();
 
-        if (mViewMode != 0) {
+        if (mode != 0) {
             Imgproc.cvtColor(rgba, mGray, Imgproc.COLOR_RGBA2GRAY);
             Imgproc.GaussianBlur(mGray, mBlur, new Size(7, 7), 0);
 
-            if (mViewMode == 2) { // CANNY mode (Gauss + Canny)
+            if (mode == 2) { // CANNY mode (Gauss + Canny)
                 Imgproc.Canny(mBlur, mEdges, mCannyThreshold, mCannyThreshold * 2.0);
                 Imgproc.dilate(mEdges, mEdges, mDilateKernel);
                 Imgproc.cvtColor(mEdges, rgba, Imgproc.COLOR_GRAY2RGBA);
@@ -344,15 +347,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             mTvDebugDiscard.setText(getString(R.string.discard_format, discardRate));
             mTvDebugIta.setText(getString(R.string.ita_format, ita));
         });
-    }
-
-    private void savePipeline(Mat orig, Mat gray, Mat blur, Mat edges) {
-        long ts = System.currentTimeMillis();
-        saveFrame(orig, "p_orig_" + ts + ".jpg");
-        saveFrame(gray, "p_gray_" + ts + ".jpg");
-        saveFrame(blur, "p_blur_" + ts + ".jpg");
-        saveFrame(edges, "p_edge_" + ts + ".jpg");
-        runOnUiThread(() -> Toast.makeText(this, R.string.pipeline_saved_toast, Toast.LENGTH_SHORT).show());
     }
 
     private void saveFrame(Mat frame) { saveFrame(frame, "cap_" + System.currentTimeMillis() + ".jpg"); }
