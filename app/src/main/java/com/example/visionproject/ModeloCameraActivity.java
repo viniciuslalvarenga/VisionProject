@@ -12,8 +12,6 @@ import org.opencv.core.MatOfDouble;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 
-import java.util.Locale;
-
 public class ModeloCameraActivity extends AppCompatActivity {
     private static final String TAG = "ModeloCameraActivity";
 

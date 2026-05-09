@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         mPccModule.resetStats();
         synchronized (mLogBuffer) {
             mLogBuffer.setLength(0);
-            mLogBuffer.append("Seconds,PCC,CRE,Status,DiscardRate,ITA_After\n");
+            mLogBuffer.append(getString(R.string.log_header));
         }
         mIsExpRunning = true;
         mExpStartTime = System.currentTimeMillis();
@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         mIsExpRunning = false;
         mTimerHandler.removeCallbacks(mTimerRunnable);
         saveLogToFile();
-        mTvTimer.setText(R.string.timer_default);
+        mTvTimer.setText(getString(R.string.timer_format, 0, 0));
     }
 
     private void logData() {
@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         }
         try {
             long timestamp = System.currentTimeMillis();
-            String fileName = "Exp1_Theta_" + String.format(Locale.US, "%.2f", mPccModule.getThresholdTheta()) + "_" + timestamp + ".csv";
+            String fileName = getString(R.string.exp_filename_prefix) + String.format(Locale.US, "%.2f", mPccModule.getThresholdTheta()) + "_" + timestamp + ".csv";
             ContentValues values = new ContentValues();
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
             values.put(MediaStore.MediaColumns.MIME_TYPE, "text/csv");

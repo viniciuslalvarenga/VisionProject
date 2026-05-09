@@ -26,7 +26,8 @@
         android:textStyle="bold"
         android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/tv_title"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="SmallSp" />
 
     <TextView
         android:id="@+id/tv_matrix_k"
@@ -37,7 +38,8 @@
         android:text="@string/matrix_k_placeholder"
         android:textSize="12sp"
         app:layout_constraintTop_toBottomOf="@id/tv_intrinsic_label"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="SmallSp" />
 
     <TextView
         android:id="@+id/tv_distortion_label"
@@ -48,7 +50,8 @@
         android:textStyle="bold"
         android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/tv_matrix_k"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="SmallSp" />
 
     <TextView
         android:id="@+id/tv_dist_coeffs"
@@ -59,7 +62,8 @@
         android:text="@string/dist_coeffs_placeholder"
         android:textSize="12sp"
         app:layout_constraintTop_toBottomOf="@id/tv_distortion_label"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="SmallSp" />
 
     <View
         android:id="@+id/divider"
@@ -67,6 +71,7 @@
         android:layout_height="1dp"
         android:layout_marginTop="24dp"
         android:background="?android:attr/listDivider"
+        android:importantForAccessibility="no"
         app:layout_constraintTop_toBottomOf="@id/tv_dist_coeffs" />
 
     <TextView

@@ -4,13 +4,12 @@
     <string name="pcc_threshold_label">PCC Threshold (θ): %1$.2f</string>
     <string name="status_label">Status: %1$s</string>
     <string name="pcc_cre_label">PCC: %1$.4f | CRE: %2$.4f</string>
-    <string name="capture_pipeline">Capturar Pipeline</string>
-    <string name="processing">Processando</string>
-    <string name="original">Original</string>
-    <string name="pipeline_saved">Pipeline salvo (4 imagens)!</string>
     <string name="opencv_init_failed">OpenCV initialization failed</string>
     <string name="camera_permission_required">Camera permission is required</string>
     <string name="timer_default">00:00</string>
+    <string name="timer_format">%1$02d:%2$02d</string>
+    <string name="log_header">Seconds,PCC,CRE,Status,DiscardRate,ITA_After\n</string>
+    <string name="exp_filename_prefix">Exp1_Theta_</string>
     <string name="pcc_default">PCC: 0.0000</string>
     <string name="status_default">Status: IDLE</string>
     <string name="discard_default">Descarte: 0%%</string>
@@ -25,7 +24,6 @@
     <string name="exp_started">EXPERIMENTO INICIADO: Gravando dados&#8230;</string>
     <string name="exp_finished">EXPERIMENTO CONCLUÍDO\nArquivo salvo: %1$s</string>
     <string name="save_error">Erro ao salvar arquivo!</string>
-    <string name="pipeline_saved_toast">Pipeline Salvo</string>
     <string name="photo_saved_toast">Foto salva!</string>
     <string name="title_modelo_camera">Modelo de Câmera</string>
     <string name="btn_modelo_camera">Modelo K</string>

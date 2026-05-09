@@ -9,9 +9,13 @@
 
     <org.opencv.android.JavaCameraView
         android:id="@+id/camera_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:contentDescription="@string/app_name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:show_fps="true"
         app:camera_id="back" />
 
@@ -80,17 +84,20 @@
 
     <LinearLayout
         android:id="@+id/controls"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="12dp"
         android:background="@color/controls_background"
-        app:layout_constraintBottom_toTopOf="@id/button_container">
+        app:layout_constraintBottom_toTopOf="@id/button_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <TextView
             android:id="@+id/tv_theta_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:labelFor="@+id/sb_theta"
             android:text="@string/pcc_threshold_label"
             android:textColor="@color/yellow"
             android:textSize="11sp"
@@ -112,6 +119,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:labelFor="@+id/sb_threshold"
                 android:text="@string/canny_threshold_label"
                 android:textColor="@color/white"
                 android:textSize="11sp"
@@ -135,13 +143,15 @@
 
     <LinearLayout
         android:id="@+id/button_container"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
         android:padding="8dp"
         android:background="@color/controls_background"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <Button
             android:id="@+id/btn_reset"
