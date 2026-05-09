@@ -6,4 +6,8 @@
     </style>
 
     <style name="Theme.VisionProject" parent="Base.Theme.VisionProject" />
+
+    <style name="Theme.VisionProject.NoWindowBackground">
+        <item name="android:windowBackground">@null</item>
+    </style>
 </resources>

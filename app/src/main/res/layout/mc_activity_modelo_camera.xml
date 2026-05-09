@@ -32,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="monospace"
-            android:text="@string/matrix_k_placeholder"
+            android:text="@string/mc_matrix_k_placeholder"
             android:textColor="@color/cyan"
             android:textSize="10sp"
             tools:ignore="SmallSp" />

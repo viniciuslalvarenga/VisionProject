@@ -54,6 +54,7 @@ public class ComparisonImageView extends LinearLayout {
 
         ivOriginal.setOnTouchListener((v, event) -> {
             if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+                v.performClick();
                 if (listener != null) {
                     float x = event.getX();
                     float y = event.getY();
@@ -77,7 +78,6 @@ public class ComparisonImageView extends LinearLayout {
                         }
                     }
                 }
-                v.performClick();
                 return true;
             }
             return false;

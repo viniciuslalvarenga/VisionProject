@@ -1,15 +1,14 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">VisionProject</string>
     <string name="canny_threshold_label">Canny Threshold: %1$d</string>
     <string name="pcc_threshold_label">PCC Threshold (θ): %1$.2f</string>
     <string name="status_label">Status: %1$s</string>
     <string name="pcc_cre_label">PCC: %1$.4f | CRE: %2$.4f</string>
     <string name="opencv_init_failed">OpenCV initialization failed</string>
-    <string name="camera_permission_required">Camera permission is required</string>
     <string name="timer_default">00:00</string>
     <string name="timer_format">%1$02d:%2$02d</string>
     <string name="log_header">Seconds,PCC,CRE,Status,DiscardRate,ITA_After\n</string>
-    <string name="exp_filename_prefix">Exp1_Theta_</string>
+    <string name="exp_filename_prefix" tools:ignore="Typos">Exp1_Theta_</string>
     <string name="pcc_default">PCC: 0.0000</string>
     <string name="status_default">Status: IDLE</string>
     <string name="discard_default">Descarte: 0%%</string>
@@ -25,19 +24,12 @@
     <string name="exp_finished">EXPERIMENTO CONCLUÍDO\nArquivo salvo: %1$s</string>
     <string name="save_error">Erro ao salvar arquivo!</string>
     <string name="photo_saved_toast">Foto salva!</string>
+    <string name="log_opencv_not_found">OpenCV library not found!</string>
+    <string name="log_save_error">Erro ao salvar log</string>
+    <string name="log_save_frame_error">Erro ao salvar frame</string>
     <string name="title_modelo_camera">Modelo de Câmera</string>
     <string name="btn_modelo_camera">Modelo K</string>
-    <string name="intrinsic_params">Parâmetros Intrínsecos (Estimados)</string>
-    <string name="distortion_params">Coeficientes de Distorção</string>
-    <string name="point_original">Ponto Original: (1200, 800)</string>
-    <string name="point_corrected">Ponto Corrigido: (%1$.2f, %2$.2f)</string>
-    <string name="matrix_k_placeholder">K = [fx 0 cx; 0 fy cy; 0 0 1]</string>
-    <string name="dist_coeffs_placeholder">D = [k1, k2, p1, p2, k3]</string>
-    <string name="calc_title">Exemplo de Correção (undistortPoints)</string>
-    <string name="point_corr_placeholder">Ponto Corrigido: (calc&#8230;)</string>
     <string name="btn_back">Voltar</string>
-    <string name="dist_coeffs_value">D = [0.12, -0.08, 0.001, 0.0005, 0.0]</string>
-    <string name="matrix_k_format">K = [%1$.1f, 0, %2$.1f;\n     0, %3$.1f, %4$.1f;\n     0, 0, 1]</string>
     <string name="discard_format">Descarte: %1$.1f%%</string>
     <string name="ita_format">ITA: %1$d pts</string>
 </resources>

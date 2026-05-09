@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.visionproject.R;
 import com.example.visionproject.modelocamera.logger.CalibrationSessionLogger;
 import com.example.visionproject.modelocamera.logger.event.CalibrationLoadedEvent;
 import com.example.visionproject.modelocamera.logger.event.EpipolarPointAddedEvent;
@@ -61,18 +62,18 @@ public class ModeloCameraViewModel extends AndroidViewModel {
     public void loadDefaultCalibration() {
         intrinsics.setValue(repository.getIntrinsics());
         distortion.setValue(repository.getDistortion());
-        statusMessage.setValue("Calibração carregada");
+        statusMessage.setValue(getApplication().getString(R.string.mc_status_calibration_loaded));
         
         logger.log(new CalibrationLoadedEvent(repository.getIntrinsics(), repository.getDistortion()));
     }
 
     public void onImageCaptured(Mat originalMat) {
         if (originalMat == null || originalMat.empty()) {
-            statusMessage.setValue("Erro: Imagem vazia");
+            statusMessage.setValue(getApplication().getString(R.string.mc_error_empty_image));
             return;
         }
 
-        statusMessage.setValue("Processando...");
+        statusMessage.setValue(getApplication().getString(R.string.mc_status_processing));
 
         // Converte original para Bitmap
         Bitmap originalBmp = Bitmap.createBitmap(originalMat.cols(), originalMat.rows(), Bitmap.Config.ARGB_8888);
@@ -90,11 +91,11 @@ public class ModeloCameraViewModel extends AndroidViewModel {
             Bitmap correctedBmp = Bitmap.createBitmap(correctedMat.cols(), correctedMat.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(correctedMat, correctedBmp);
             correctedImage.postValue(correctedBmp);
-            statusMessage.postValue("Imagem corrigida com sucesso");
+            statusMessage.postValue(getApplication().getString(R.string.mc_status_success));
             
             logger.log(new ImageUndistortedEvent("captured_image.png", "corrected_image.png", correctedMat.cols(), correctedMat.rows(), elapsed));
         } else {
-            statusMessage.postValue("Falha na correção da imagem");
+            statusMessage.postValue(getApplication().getString(R.string.mc_status_error));
         }
         
         correctedMat.release();

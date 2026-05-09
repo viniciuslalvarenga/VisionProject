@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             int minutes = seconds / 60;
             int sec = seconds % 60;
 
-            mTvTimer.setText(String.format(Locale.US, "%02d:%02d", minutes, sec));
+            mTvTimer.setText(getString(R.string.timer_format, minutes, sec));
             if (seconds >= 120) {
                 ToggleButton btnRecord = findViewById(R.id.btn_record);
                 if (btnRecord != null) btnRecord.setChecked(false);
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         if (!OpenCVLoader.initLocal()) {
-            Log.e(TAG, "OpenCV library not found!");
+            Log.e(TAG, getString(R.string.log_opencv_not_found));
         }
 
         setContentView(R.layout.activity_main);
@@ -233,7 +233,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                 Toast.makeText(this, getString(R.string.exp_finished, fileName), Toast.LENGTH_LONG).show();
             }
         } catch (Exception e) {
-            Log.e(TAG, "Erro ao salvar log", e);
+            Log.e(TAG, getString(R.string.log_save_error), e);
             Toast.makeText(this, R.string.save_error, Toast.LENGTH_SHORT).show();
         }
     }
@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                     bmp.compress(Bitmap.CompressFormat.JPEG, 90, out);
                     runOnUiThread(() -> Toast.makeText(this, R.string.photo_saved_toast, Toast.LENGTH_SHORT).show());
                 }
-            } catch (Exception e) { Log.e(TAG, "Err save", e); }
+            } catch (Exception e) { Log.e(TAG, getString(R.string.log_save_frame_error), e); }
         }
         bmp.recycle();
         frame.release();

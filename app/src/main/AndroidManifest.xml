@@ -28,7 +28,8 @@
             android:name=".modelocamera.ModeloCameraActivity"
             android:exported="false"
             android:label="@string/title_modelo_camera"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.VisionProject.NoWindowBackground" />
     </application>
 
 </manifest>
