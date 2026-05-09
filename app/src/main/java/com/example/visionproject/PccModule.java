@@ -116,6 +116,14 @@ public class PccModule {
         return String.format(Locale.US, "%s (%d/%d)", mStatus, mDiscardedFrames.get(), mTotalFrames.get());
     }
 
+    public void release() {
+        if (mReferenceRoi != null) mReferenceRoi.release();
+        mF1.release();
+        mF2.release();
+        mGray.release();
+        mSmallGray.release();
+    }
+
     public void resetStats() { 
         mTotalFrames.set(0); 
         mDiscardedFrames.set(0); 

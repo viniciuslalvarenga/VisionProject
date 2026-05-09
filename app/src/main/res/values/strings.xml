@@ -27,6 +27,19 @@
     <string name="save_error">Erro ao salvar arquivo!</string>
     <string name="pipeline_saved_toast">Pipeline Salvo</string>
     <string name="photo_saved_toast">Foto salva!</string>
+    <string name="title_modelo_camera">Modelo de Câmera</string>
+    <string name="btn_modelo_camera">Modelo K</string>
+    <string name="intrinsic_params">Parâmetros Intrínsecos (Estimados)</string>
+    <string name="distortion_params">Coeficientes de Distorção</string>
+    <string name="point_original">Ponto Original: (1200, 800)</string>
+    <string name="point_corrected">Ponto Corrigido: (%1$.2f, %2$.2f)</string>
+    <string name="matrix_k_placeholder">K = [fx 0 cx; 0 fy cy; 0 0 1]</string>
+    <string name="dist_coeffs_placeholder">D = [k1, k2, p1, p2, k3]</string>
+    <string name="calc_title">Exemplo de Correção (undistortPoints)</string>
+    <string name="point_corr_placeholder">Ponto Corrigido: (calc...)</string>
+    <string name="btn_back">Voltar</string>
+    <string name="dist_coeffs_value">D = [0.12, -0.08, 0.001, 0.0005, 0.0]</string>
+    <string name="matrix_k_format">K = [%1$.1f, 0, %2$.1f;\n     0, %3$.1f, %4$.1f;\n     0, 0, 1]</string>
     <string name="discard_format">Descarte: %1$.1f%%</string>
     <string name="ita_format">ITA: %1$d pts</string>
 </resources>

@@ -11,6 +11,7 @@
         android:id="@+id/camera_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:contentDescription="@string/app_name"
         app:show_fps="true"
         app:camera_id="back" />
 
@@ -19,10 +20,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:background="#A0000000"
+        android:background="@color/panel_background"
         android:padding="8dp"
         android:text="@string/timer_default"
-        android:textColor="#FF0000"
+        android:textColor="@color/red"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -34,7 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:background="#A0000000"
+        android:background="@color/panel_background"
         android:orientation="vertical"
         android:padding="8dp"
         app:layout_constraintStart_toStartOf="parent"
@@ -45,32 +46,36 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/pcc_default"
-            android:textColor="#00FF00"
-            android:textSize="11sp" />
+            android:textColor="@color/green"
+            android:textSize="11sp"
+            tools:ignore="SmallSp" />
 
         <TextView
             android:id="@+id/tv_debug_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/status_default"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp" />
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            tools:ignore="SmallSp" />
 
         <TextView
             android:id="@+id/tv_debug_discard"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/discard_default"
-            android:textColor="#FFFF00"
-            android:textSize="11sp" />
+            android:textColor="@color/yellow"
+            android:textSize="11sp"
+            tools:ignore="SmallSp" />
 
         <TextView
             android:id="@+id/tv_debug_ita"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/ita_default"
-            android:textColor="#00FFFF"
-            android:textSize="11sp" />
+            android:textColor="@color/cyan"
+            android:textSize="11sp"
+            tools:ignore="SmallSp" />
     </LinearLayout>
 
     <LinearLayout
@@ -79,7 +84,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="12dp"
-        android:background="#80000000"
+        android:background="@color/controls_background"
         app:layout_constraintBottom_toTopOf="@id/button_container">
 
         <TextView
@@ -87,7 +92,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/pcc_threshold_label"
-            android:textColor="#FFFF00"
+            android:textColor="@color/yellow"
             android:textSize="11sp"
             tools:ignore="SmallSp" />
         <SeekBar
@@ -108,7 +113,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/canny_threshold_label"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/white"
                 android:textSize="11sp"
                 tools:ignore="SmallSp" />
             <Button
@@ -135,6 +140,7 @@
         android:orientation="horizontal"
         android:gravity="center"
         android:padding="8dp"
+        android:background="@color/controls_background"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <Button
@@ -151,8 +157,8 @@
             android:layout_height="wrap_content"
             android:textOn="@string/record_on"
             android:textOff="@string/record_off"
-            android:backgroundTint="#F44336"
-            android:textColor="#FFFFFF"
+            android:backgroundTint="@color/record_red"
+            android:textColor="@color/white"
             android:textSize="11sp"
             tools:ignore="SmallSp" />
 
@@ -161,6 +167,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/capture_button"
+            android:textSize="11sp"
+            tools:ignore="SmallSp" />
+
+        <Button
+            android:id="@+id/btn_modelo_camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_modelo_camera"
             android:textSize="11sp"
             tools:ignore="SmallSp" />
     </LinearLayout>

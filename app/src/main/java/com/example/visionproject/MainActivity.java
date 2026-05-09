@@ -2,9 +2,9 @@ package com.example.visionproject;
 
 import android.Manifest;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private Mat mDilateKernel;
 
     private volatile boolean mIsExpRunning = false;
-    private long mExpStartTime = 0;
+    private volatile long mExpStartTime = 0;
     private volatile long mLastUiUpdate = 0; // Para limitar atualizações da UI
     private final StringBuilder mLogBuffer = new StringBuilder();
     private final Handler mTimerHandler = new Handler(Looper.getMainLooper());
@@ -158,6 +158,11 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         findViewById(R.id.btn_capture).setOnClickListener(v -> mSaveNextFrame = true);
 
+        findViewById(R.id.btn_modelo_camera).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ModeloCameraActivity.class);
+            startActivity(intent);
+        });
+
         checkCameraPermission();
     }
 
@@ -181,10 +186,11 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     }
 
     private void logData() {
+        if (!mIsExpRunning) return;
         long elapsedMillis = System.currentTimeMillis() - mExpStartTime;
         double seconds = elapsedMillis / 1000.0;
         
-        String entry = String.format(Locale.US, "%.2f,%.4f,%.4f,%s,%.1f,%d\n",
+        String entry = String.format(Locale.US, "%.3f,%.4f,%.4f,%s,%.1f,%d\n",
                 seconds,
                 mPccModule.getCurrentPcc(), mPccModule.getCurrentCre(),
                 mPccModule.getStatus(), mPccModule.getDiscardRate(),
@@ -267,6 +273,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     public void onDestroy() {
         super.onDestroy();
         if (mOpenCvCameraView != null) mOpenCvCameraView.disableView();
+        mTimerHandler.removeCallbacks(mTimerRunnable);
+        if (mPccModule != null) mPccModule.release();
     }
 
     @Override
@@ -337,11 +345,11 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             mTvDebugStatus.setText(getString(R.string.status_label, fullStatus));
             
             if ("IDLE".equals(status)) {
-                mTvDebugStatus.setTextColor(Color.WHITE);
+                mTvDebugStatus.setTextColor(ContextCompat.getColor(this, R.color.white));
             } else if ("DISCARD".equals(status)) {
-                mTvDebugStatus.setTextColor(Color.YELLOW);
+                mTvDebugStatus.setTextColor(ContextCompat.getColor(this, R.color.yellow));
             } else if ("PROCESS".equals(status)) {
-                mTvDebugStatus.setTextColor(Color.GREEN);
+                mTvDebugStatus.setTextColor(ContextCompat.getColor(this, R.color.green));
             }
 
             mTvDebugDiscard.setText(getString(R.string.discard_format, discardRate));
