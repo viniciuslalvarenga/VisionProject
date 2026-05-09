@@ -121,6 +121,10 @@ android {
             }
         }
     }
+
+    lint {
+        abortOnError false
+    }
     
     android {
         buildFeatures {

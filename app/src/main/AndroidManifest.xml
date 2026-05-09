@@ -25,9 +25,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ModeloCameraActivity"
+            android:name=".modelocamera.ModeloCameraActivity"
             android:exported="false"
-            android:label="@string/title_modelo_camera" />
+            android:label="@string/title_modelo_camera"
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>

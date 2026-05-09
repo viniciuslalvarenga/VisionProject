@@ -1,0 +1,18 @@
+<resources>
+    <string name="mc_title_modelo_camera">Modelo de Câmera (Módulo 2)</string>
+    <string name="mc_btn_capture">📷 Capturar A4</string>
+    <string name="mc_btn_gallery">🖼 Galeria</string>
+    <string name="mc_btn_epipolar">↩ Linhas Epipolares</string>
+    <string name="mc_btn_save">💾 Salvar JPG</string>
+    <string name="mc_btn_csv">📊 Salvar CSV</string>
+    <string name="mc_csv_save_success">CSV salvo em Pictures/VisionProject/</string>
+    <string name="mc_btn_share">📤 Compartilhar</string>
+    <string name="mc_label_original">ORIGINAL</string>
+    <string name="mc_label_corrected">CORRIGIDA</string>
+    <string name="mc_status_ready">Pronto</string>
+    <string name="mc_status_processing">Processando&#8230;</string>
+    <string name="mc_status_error">Erro ao processar imagem</string>
+    <string name="mc_save_success">Comparação salva com sucesso!</string>
+    <string name="mc_save_error">Erro ao salvar imagem</string>
+    <string name="mc_epipolar_instructions">Toque em até 5 pontos para ver as linhas epipolares.</string>
+</resources>

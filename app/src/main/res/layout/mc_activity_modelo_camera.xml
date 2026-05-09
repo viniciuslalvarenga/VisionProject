@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    tools:context=".modelocamera.ModeloCameraActivity">
+
+    <!-- Header com Parâmetros -->
+    <LinearLayout
+        android:id="@+id/mc_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/mc_tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/mc_title_modelo_camera"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/mc_tv_params"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:text="@string/matrix_k_placeholder"
+            android:textColor="@color/cyan"
+            android:textSize="10sp"
+            tools:ignore="SmallSp" />
+    </LinearLayout>
+
+    <!-- Área Central de Visualização -->
+    <FrameLayout
+        android:id="@+id/mc_view_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/mc_controls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/mc_header">
+
+        <com.example.visionproject.modelocamera.ui.ComparisonImageView
+            android:id="@+id/mc_comparison_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible" />
+
+        <com.example.visionproject.modelocamera.ui.EpipolarOverlayView
+            android:id="@+id/mc_epipolar_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- Barra de Status -->
+    <TextView
+        android:id="@+id/mc_tv_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@color/panel_background"
+        android:padding="4dp"
+        android:text="@string/mc_status_ready"
+        android:textColor="@color/yellow"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toTopOf="@id/mc_controls"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="SmallSp" />
+
+    <!-- Controles -->
+    <LinearLayout
+        android:id="@+id/mc_controls"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/controls_background"
+        android:orientation="vertical"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/mc_btn_gallery"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/mc_btn_gallery"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
+
+            <Button
+                android:id="@+id/mc_btn_epipolar"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/mc_btn_epipolar"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/mc_btn_save"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/mc_btn_save"
+                android:textColor="@color/green"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
+
+            <Button
+                android:id="@+id/mc_btn_csv"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/mc_btn_csv"
+                android:textColor="@color/yellow"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
+
+            <Button
+                android:id="@+id/mc_btn_share"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/mc_btn_share"
+                android:textColor="@color/cyan"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
+
+            <Button
+                android:id="@+id/mc_btn_back"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/btn_back"
+                android:textColor="@color/red"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
