@@ -15,7 +15,6 @@
     <string name="mc_status_calibration_loaded">Calibração carregada</string>
     <string name="mc_status_success">Imagem corrigida com sucesso</string>
     <string name="mc_error_empty_image">Erro: Imagem vazia</string>
-    <string name="mc_error_load_first">Carregue uma imagem primeiro</string>
     <string name="mc_save_success">Comparação salva com sucesso!</string>
     <string name="mc_save_error">Erro ao salvar imagem</string>
     <string name="mc_epipolar_instructions">Toque em até 5 pontos para ver as linhas epipolares.</string>
