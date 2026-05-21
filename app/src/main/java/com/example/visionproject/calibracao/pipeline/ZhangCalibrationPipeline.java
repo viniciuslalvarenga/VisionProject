@@ -59,6 +59,8 @@ public class ZhangCalibrationPipeline {
         );
 
         // Limpeza de recursos temporários
+        cameraMatrix.release();
+        distCoeffs.release();
         for (Mat m : objPoints) m.release();
         // imgPoints não devem ser liberados aqui pois pertencem aos CalibrationFrames no repositório
         for (Mat m : rvecs) m.release();

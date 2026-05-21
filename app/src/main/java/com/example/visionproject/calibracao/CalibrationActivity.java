@@ -97,10 +97,10 @@ public class CalibrationActivity extends AppCompatActivity implements CameraBrid
 
         viewModel.getFramesCollectedCount().observe(this, count -> {
             tvCount.setText(String.format("Frames: %d/15", count));
+            // Precisamos passar as dimensões reais do frame para o heatmap processar os pontos corretamente
             heatmapView.updateCoverage(
                 com.example.visionproject.calibracao.repository.CalibrationFramesRepository.getInstance().getAll(),
-                cameraView.getWidth(),
-                cameraView.getHeight()
+                viewModel.getLastImageSize()
             );
         });
 
@@ -221,10 +221,20 @@ public class CalibrationActivity extends AppCompatActivity implements CameraBrid
     public void onDestroy() {
         super.onDestroy();
         if (cameraView != null) cameraView.disableView();
+        if (lastFrame != null) {
+            lastFrame.release();
+            lastFrame = null;
+        }
     }
 
     @Override
-    public void onCameraViewStarted(int width, int height) {}
+    public void onCameraViewStarted(int width, int height) {
+        runOnUiThread(() -> {
+            if (overlayView != null) {
+                overlayView.setFrameSize(width, height);
+            }
+        });
+    }
 
     @Override
     public void onCameraViewStopped() {}

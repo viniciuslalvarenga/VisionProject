@@ -39,6 +39,7 @@ public class CalibrationCsvLogger {
 
     private final String sessionId;
     private final SimpleDateFormat isoFormat;
+    private final Object isoLock = new Object();
     private final StringBuilder logBuffer = new StringBuilder();
     private final ExecutorService io = Executors.newSingleThreadExecutor();
 
@@ -90,15 +91,19 @@ public class CalibrationCsvLogger {
 
     public void logCalibrationDone(CalibrationResult res, List<Double> perImageErrors) {
         long now = System.currentTimeMillis();
-        String iso = isoFormat.format(new Date(now));
+        String iso;
+        synchronized (isoLock) {
+            iso = isoFormat.format(new Date(now));
+        }
         
+        final String finalIso = iso;
         io.execute(() -> {
-            String doneLine = formatLine("CALIBRATION_DONE", -1, -1, -1, -1, res, res.getElapsedMsTotal(), -1, "", now, iso);
+            String doneLine = formatLine("CALIBRATION_DONE", -1, -1, -1, -1, res, res.getElapsedMsTotal(), -1, "", now, finalIso);
             synchronized (logBuffer) {
                 logBuffer.append(doneLine).append("\n");
                 if (perImageErrors != null) {
                     for (int i = 0; i < perImageErrors.size(); i++) {
-                        String line = formatLine("PER_IMAGE_ERROR", i, -1, -1, -1, null, -1, perImageErrors.get(i), "", now, iso);
+                        String line = formatLine("PER_IMAGE_ERROR", i, -1, -1, -1, null, -1, perImageErrors.get(i), "", now, finalIso);
                         logBuffer.append(line).append("\n");
                     }
                 }
@@ -109,9 +114,13 @@ public class CalibrationCsvLogger {
     private void appendLine(String eventType, int frameIdx, int corners, double blur, double stability, 
                             CalibrationResult res, long elapsed, double perImageError, String notes) {
         long now = System.currentTimeMillis();
-        String iso = isoFormat.format(new Date(now));
+        String iso;
+        synchronized (isoLock) {
+            iso = isoFormat.format(new Date(now));
+        }
+        final String finalIso = iso;
         io.execute(() -> {
-            String line = formatLine(eventType, frameIdx, corners, blur, stability, res, elapsed, perImageError, notes, now, iso);
+            String line = formatLine(eventType, frameIdx, corners, blur, stability, res, elapsed, perImageError, notes, now, finalIso);
             synchronized (logBuffer) {
                 logBuffer.append(line).append("\n");
             }

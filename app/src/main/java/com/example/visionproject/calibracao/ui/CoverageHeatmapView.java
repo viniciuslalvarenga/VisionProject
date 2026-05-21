@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import com.example.visionproject.calibracao.model.CalibrationFrame;
 
 import org.opencv.core.Point;
+import org.opencv.core.Size;
 
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class CoverageHeatmapView extends View {
         paint.setStyle(Paint.Style.FILL);
     }
 
-    public void updateCoverage(List<CalibrationFrame> frames, int viewWidth, int viewHeight) {
+    public void updateCoverage(List<CalibrationFrame> frames, Size frameSize) {
         // Reinicia a grade
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
@@ -50,7 +51,7 @@ public class CoverageHeatmapView extends View {
         }
         maxCount = 0;
 
-        if (viewWidth <= 0 || viewHeight <= 0) return;
+        if (frameSize == null || frameSize.width <= 0 || frameSize.height <= 0) return;
 
         for (CalibrationFrame f : frames) {
             Point[] pts = f.getCorners().toArray();
@@ -65,8 +66,8 @@ public class CoverageHeatmapView extends View {
             avgX /= pts.length;
             avgY /= pts.length;
 
-            int col = (int) (avgX * COLS / viewWidth);
-            int row = (int) (avgY * ROWS / viewHeight);
+            int col = (int) (avgX * COLS / frameSize.width);
+            int row = (int) (avgY * ROWS / frameSize.height);
 
             if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
                 grid[row][col]++;

@@ -69,6 +69,8 @@ public class CalibrationViewModel extends AndroidViewModel {
     public LiveData<String> getUserMessage() { return userMessage; }
     public LiveData<android.util.Pair<android.graphics.Bitmap, android.graphics.Bitmap>> getUndistortComparison() { return undistortComparison; }
 
+    public Size getLastImageSize() { return lastImageSize; }
+
     public void onPreviewFrame(Mat rgba) {
         if (state.getValue() == CalibrationState.CALIBRATING || state.getValue() == CalibrationState.DONE) {
             return;
