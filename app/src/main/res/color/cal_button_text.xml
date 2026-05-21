@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cor de texto dos botoes da Activity de Calibracao.
+  Branco quando habilitado, branco com 60% alpha quando desabilitado.
+  Garante visibilidade sobre fundo preto semi-transparente do tema Material3.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:color="#99FFFFFF" />
+    <item android:color="#FFFFFFFF" />
+</selector>
