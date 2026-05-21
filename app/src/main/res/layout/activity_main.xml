@@ -89,7 +89,7 @@
         android:orientation="vertical"
         android:padding="12dp"
         android:background="@color/controls_background"
-        app:layout_constraintBottom_toTopOf="@id/button_container"
+        app:layout_constraintBottom_toTopOf="@id/button_container_scroll"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
@@ -141,52 +141,66 @@
             android:progress="85" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/button_container"
+    <HorizontalScrollView
+        android:id="@+id/button_container_scroll"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:padding="8dp"
         android:background="@color/controls_background"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <Button
-            android:id="@+id/btn_reset"
+        <LinearLayout
+            android:id="@+id/button_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/reset_button"
-            android:textSize="11sp"
-            tools:ignore="SmallSp" />
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="8dp">
 
-        <ToggleButton
-            android:id="@+id/btn_record"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textOn="@string/record_on"
-            android:textOff="@string/record_off"
-            android:backgroundTint="@color/record_red"
-            android:textColor="@color/white"
-            android:textSize="11sp"
-            tools:ignore="SmallSp" />
+            <Button
+                android:id="@+id/btn_reset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/reset_button"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
 
-        <Button
-            android:id="@+id/btn_capture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/capture_button"
-            android:textSize="11sp"
-            tools:ignore="SmallSp" />
+            <ToggleButton
+                android:id="@+id/btn_record"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textOn="@string/record_on"
+                android:textOff="@string/record_off"
+                android:backgroundTint="@color/record_red"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
 
-        <Button
-            android:id="@+id/btn_modelo_camera"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_modelo_camera"
-            android:textSize="11sp"
-            tools:ignore="SmallSp" />
-    </LinearLayout>
+            <Button
+                android:id="@+id/btn_capture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/capture_button"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
+
+            <Button
+                android:id="@+id/btn_modelo_camera"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_modelo_camera"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
+
+            <Button
+                android:id="@+id/btn_calibracao"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_calibracao"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

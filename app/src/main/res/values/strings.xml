@@ -29,7 +29,18 @@
     <string name="log_save_frame_error">Erro ao salvar frame</string>
     <string name="title_modelo_camera">Modelo de Câmera</string>
     <string name="btn_modelo_camera">Modelo K</string>
+    <string name="btn_calibracao">Calibração</string>
+    <string name="cal_status_waiting">Aguardando Padrão...</string>
+    <string name="cal_status_detecting">Detectando...</string>
+    <string name="cal_status_stable">Estável! Capturando...</string>
+    <string name="cal_status_calibrating">Processando Zhang...</string>
+    <string name="cal_status_done">Calibração Concluída</string>
+    <string name="cal_msg_min_frames">Colete pelo menos 15 frames para calibrar.</string>
+    <string name="cal_msg_save_success">Parâmetros salvos e aplicados!</string>
     <string name="btn_back">Voltar</string>
     <string name="discard_format">Descarte: %1$.1f%%</string>
     <string name="ita_format">ITA: %1$d pts</string>
+    <string name="cal_btn_list">📋 Lista</string>
+    <string name="cal_dialog_title_list">Frames coletados</string>
+    <string name="cal_col_error">Erro (px)</string>
 </resources>

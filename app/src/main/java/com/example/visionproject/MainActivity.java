@@ -92,6 +92,9 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         setContentView(R.layout.activity_main);
 
+        // Módulo 3: Carrega calibração real se existir
+        com.example.visionproject.modelocamera.repository.CalibrationRepository.getInstance().loadFromCalibrationJson(this);
+
         mOpenCvCameraView = findViewById(R.id.camera_view);
         if (mOpenCvCameraView != null) {
             mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -162,6 +165,11 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         findViewById(R.id.btn_modelo_camera).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, ModeloCameraActivity.class);
+            startActivity(intent);
+        });
+
+        findViewById(R.id.btn_calibracao).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, com.example.visionproject.calibracao.CalibrationActivity.class);
             startActivity(intent);
         });
 

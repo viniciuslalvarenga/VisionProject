@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/cal_item_idx"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:text="0"/>
+
+    <TextView
+        android:id="@+id/cal_item_blur"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="150.0"/>
+
+    <TextView
+        android:id="@+id/cal_item_stability"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="0.5"/>
+
+    <TextView
+        android:id="@+id/cal_item_error"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="0.1"
+        android:visibility="gone"/>
+
+    <ImageButton
+        android:id="@+id/cal_item_btn_delete"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_delete"
+        android:contentDescription="Deletar frame"/>
+
+</LinearLayout>

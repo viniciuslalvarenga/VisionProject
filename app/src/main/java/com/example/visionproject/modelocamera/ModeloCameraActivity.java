@@ -63,6 +63,14 @@ public class ModeloCameraActivity extends AppCompatActivity {
         setupListeners();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Módulo 3: Recarrega calibração caso tenha sido feita uma nova
+        com.example.visionproject.modelocamera.repository.CalibrationRepository.getInstance().loadFromCalibrationJson(this);
+        updateParamsText();
+    }
+
     private void initViews() {
         comparisonView = findViewById(R.id.mc_comparison_view);
         epipolarView = findViewById(R.id.mc_epipolar_view);
@@ -110,6 +118,11 @@ public class ModeloCameraActivity extends AppCompatActivity {
         findViewById(R.id.mc_btn_gallery).setOnClickListener(v -> {
             ImageCaptureHelper.launchGalleryPicker(galleryLauncher);
             showComparisonView();
+        });
+
+        findViewById(R.id.mc_btn_calibracao).setOnClickListener(v -> {
+            Intent intent = new Intent(this, com.example.visionproject.calibracao.CalibrationActivity.class);
+            startActivity(intent);
         });
 
         findViewById(R.id.mc_btn_epipolar).setOnClickListener(v -> {

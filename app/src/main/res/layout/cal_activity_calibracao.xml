@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    tools:context=".calibracao.CalibrationActivity">
+
+    <org.opencv.android.JavaCameraView
+        android:id="@+id/cal_camera_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:show_fps="true"
+        app:camera_id="back" />
+
+    <com.example.visionproject.calibracao.ui.ChessboardOverlayView
+        android:id="@+id/cal_overlay_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/cal_camera_view"
+        app:layout_constraintEnd_toEndOf="@id/cal_camera_view"
+        app:layout_constraintStart_toStartOf="@id/cal_camera_view"
+        app:layout_constraintTop_toTopOf="@id/cal_camera_view" />
+
+    <com.example.visionproject.calibracao.ui.CoverageHeatmapView
+        android:id="@+id/cal_heatmap_view"
+        android:layout_width="120dp"
+        android:layout_height="90dp"
+        android:layout_margin="16dp"
+        android:alpha="0.7"
+        app:layout_constraintBottom_toTopOf="@id/cal_controls"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/cal_tv_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@color/panel_background"
+        android:padding="8dp"
+        android:text="Status: Aguardando..."
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/cal_info_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="@color/panel_background"
+        android:orientation="vertical"
+        android:padding="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/cal_tv_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Frames: 0/15"
+            android:textColor="@color/yellow"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/cal_tv_blur"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Blur Score: 0.0"
+            android:textColor="@color/cyan"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <HorizontalScrollView
+        android:id="@+id/cal_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/controls_background"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/cal_btn_capture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/cal_button_bg"
+                android:text="Capturar"
+                android:textColor="@color/cal_button_text"
+                android:textSize="11sp" />
+
+            <ToggleButton
+                android:id="@+id/cal_btn_auto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/cal_button_bg"
+                android:checked="true"
+                android:textColor="@color/cal_button_text"
+                android:textOff="Auto OFF"
+                android:textOn="Auto ON"
+                android:textSize="11sp" />
+
+            <Button
+                android:id="@+id/cal_btn_clear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/cal_button_bg"
+                android:text="Limpar"
+                android:textColor="@color/cal_button_text"
+                android:textSize="11sp" />
+
+            <Button
+                android:id="@+id/cal_btn_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/cal_button_bg"
+                android:text="@string/cal_btn_list"
+                android:textColor="@color/cal_button_text"
+                android:textSize="11sp" />
+
+            <Button
+                android:id="@+id/cal_btn_calibrate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/cal_button_bg"
+                android:enabled="false"
+                android:text="Calibrar"
+                android:textColor="@color/cal_button_text"
+                android:textSize="11sp" />
+
+            <Button
+                android:id="@+id/cal_btn_save"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/cal_button_bg"
+                android:enabled="false"
+                android:text="Salvar"
+                android:textColor="@color/cal_button_text"
+                android:textSize="11sp" />
+
+            <Button
+                android:id="@+id/cal_btn_undistort"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/cal_button_bg"
+                android:enabled="false"
+                android:text="👁 Antes/Depois"
+                android:textColor="@color/cal_button_text"
+                android:textSize="11sp" />
+
+            <Button
+                android:id="@+id/cal_btn_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/cal_button_bg"
+                android:text="@string/btn_back"
+                android:textColor="@color/cal_button_text"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <ProgressBar
+        android:id="@+id/cal_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

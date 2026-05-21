@@ -1,8 +1,11 @@
 package com.example.visionproject.modelocamera.repository;
 
+import android.content.Context;
 import com.example.visionproject.modelocamera.factory.IntrinsicsFactory;
 import com.example.visionproject.modelocamera.model.CameraIntrinsics;
 import com.example.visionproject.modelocamera.model.DistortionCoefficients;
+import com.example.visionproject.calibracao.repository.CalibrationJsonStore;
+import com.example.visionproject.calibracao.model.CalibrationResult;
 
 /**
  * Singleton thread-safe que gerencia os parâmetros de calibração globais.
@@ -41,5 +44,20 @@ public final class CalibrationRepository {
 
     public synchronized void setDistortion(DistortionCoefficients distortion) {
         this.distortion = distortion;
+    }
+
+    /**
+     * Carrega os parâmetros de calibração a partir do arquivo JSON gerado pelo Módulo 3.
+     * Se o arquivo não existir, mantém os valores atuais (placeholders).
+     */
+    public synchronized void loadFromCalibrationJson(Context ctx) {
+        CalibrationResult cr = CalibrationJsonStore.load(ctx);
+        if (cr == null) return;
+
+        this.intrinsics = new CameraIntrinsics(cr.getFx(), cr.getFy(), cr.getCx(), cr.getCy());
+        this.distortion = new DistortionCoefficients.Builder()
+                .k1(cr.getK1()).k2(cr.getK2())
+                .p1(cr.getP1()).p2(cr.getP2())
+                .k3(cr.getK3()).build();
     }
 }

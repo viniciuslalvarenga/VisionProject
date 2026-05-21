@@ -56,15 +56,20 @@ public class ModeloCameraViewModel extends AndroidViewModel {
         this.repository = repo;
         
         logger.startSession(application);
-        loadDefaultCalibration();
+        syncWithRepository();
     }
 
-    public void loadDefaultCalibration() {
+    public void syncWithRepository() {
+        repository.loadFromCalibrationJson(getApplication());
         intrinsics.setValue(repository.getIntrinsics());
         distortion.setValue(repository.getDistortion());
         statusMessage.setValue(getApplication().getString(R.string.mc_status_calibration_loaded));
         
         logger.log(new CalibrationLoadedEvent(repository.getIntrinsics(), repository.getDistortion()));
+    }
+
+    public void loadDefaultCalibration() {
+        syncWithRepository();
     }
 
     public void onImageCaptured(Mat originalMat) {

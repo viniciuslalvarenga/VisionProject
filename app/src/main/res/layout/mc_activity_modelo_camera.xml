@@ -106,6 +106,17 @@
                 tools:ignore="SmallSp" />
 
             <Button
+                android:id="@+id/mc_btn_calibracao"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/btn_calibracao"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                tools:ignore="SmallSp" />
+
+            <Button
                 android:id="@+id/mc_btn_epipolar"
                 style="?android:attr/borderlessButtonStyle"
                 android:layout_width="0dp"
