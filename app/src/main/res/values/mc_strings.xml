@@ -4,7 +4,7 @@
     <string name="mc_btn_epipolar">↩ Linhas Epipolares</string>
     <string name="mc_btn_save">💾 Salvar JPG</string>
     <string name="mc_btn_csv">📊 Salvar CSV</string>
-    <string name="mc_csv_save_success">CSV salvo em Pictures/VisionProject/</string>
+    <string name="mc_csv_save_success">CSV salvo em Documents/VisionProject/</string>
     <string name="mc_btn_share">📤 Compartilhar</string>
     <string name="mc_label_original">ORIGINAL</string>
     <string name="mc_label_corrected">CORRIGIDA</string>

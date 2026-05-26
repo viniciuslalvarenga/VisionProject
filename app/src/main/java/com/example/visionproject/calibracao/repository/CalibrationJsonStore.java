@@ -48,6 +48,51 @@ public class CalibrationJsonStore {
         }
     }
 
+    public static String saveToPublicDocuments(CalibrationResult result, Context context) {
+        try {
+            JSONObject json = result.toJson();
+            String jsonString = json.toString(4);
+
+            // 1. Salva no armazenamento interno (sempre necessário para o app funcionar)
+            saveToInternal(context, jsonString);
+
+            // 2. Salva no Documents/VisionProject usando MediaStore para compatibilidade
+            String fileName = FILE_NAME;
+            android.content.ContentValues values = new android.content.ContentValues();
+            values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+            values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/json");
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOCUMENTS + "/VisionProject");
+            } else {
+                java.io.File dir = new java.io.File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOCUMENTS), "VisionProject");
+                if (!dir.exists() && !dir.mkdirs()) {
+                    throw new java.io.IOException("Falha ao criar diretório");
+                }
+                java.io.File file = new java.io.File(dir, fileName);
+                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
+                    fos.write(jsonString.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                }
+                return file.getAbsolutePath();
+            }
+
+            android.net.Uri uri = context.getContentResolver().insert(android.provider.MediaStore.Files.getContentUri("external"), values);
+            if (uri != null) {
+                try (java.io.OutputStream os = context.getContentResolver().openOutputStream(uri)) {
+                    if (os != null) {
+                        os.write(jsonString.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    }
+                }
+                return "Documents/VisionProject/" + fileName;
+            }
+            return "Erro ao criar entrada no MediaStore";
+
+        } catch (Exception e) {
+            Log.e(TAG, "Erro ao salvar JSON em Documents", e);
+            return "Erro: " + e.getMessage();
+        }
+    }
+
     public static String saveToDir(CalibrationResult result, Context context, File dir) throws Exception {
         JSONObject json = result.toJson();
         String jsonString = json.toString(4);

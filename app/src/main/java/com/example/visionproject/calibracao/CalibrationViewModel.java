@@ -281,14 +281,18 @@ public class CalibrationViewModel extends AndroidViewModel {
         CalibrationResult res = result.getValue();
         if (res != null) {
             try {
-                // Usa o novo método para obter o diretório correto
-                java.io.File dir = getVisionProjectDir(null);
-                String jsonPath = CalibrationJsonStore.saveToDir(res, getApplication(), dir);
+                // 1. Salva o JSON (Parâmetros intrínsecos) na pasta pública Documents/VisionProject
+                String jsonPath = CalibrationJsonStore.saveToPublicDocuments(res, getApplication());
                 
+                // 2. Salva o CSV (Rastreabilidade/Log) na pasta pública Documents/VisionProject
                 CalibrationCsvLogger.getInstance().logJsonExported(jsonPath);
                 CalibrationCsvLogger.getInstance().logCalibrationDone(res, res.getPerImageReprojectionError());
                 CalibrationCsvLogger.getInstance().saveSession(getApplication());
-                userMessage.setValue("Calibração e logs salvos em: " + jsonPath);
+                
+                // Mensagem detalhada para o usuário
+                userMessage.setValue("Sucesso! JSON e CSV salvos em:\nDocuments/VisionProject");
+                
+                Log.d(TAG, "Resultado salvo. JSON: " + jsonPath);
             } catch (Exception e) {
                 userMessage.setValue("Erro ao salvar: " + e.getMessage());
                 Log.e(TAG, "Erro ao salvar resultado", e);
