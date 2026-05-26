@@ -81,8 +81,12 @@ public class CalibrationActivity extends AppCompatActivity implements CameraBrid
 
         viewModel.getState().observe(this, state -> {
             tvStatus.setText("Status: " + state.name());
-            // Agora permite calibrar se estiver pronto, se já terminou ou se deu erro antes
-            btnCalibrate.setEnabled(state == CalibrationState.READY_TO_CALIBRATE || 
+            
+            int frameCount = viewModel.getFramesCollectedCount().getValue() != null ? 
+                             viewModel.getFramesCollectedCount().getValue() : 0;
+
+            // O botão calibrar agora depende da contagem de frames acumulados
+            btnCalibrate.setEnabled((frameCount >= 15 && state != CalibrationState.CALIBRATING) || 
                                   state == CalibrationState.DONE || 
                                   state == CalibrationState.ERROR);
 
@@ -97,6 +101,12 @@ public class CalibrationActivity extends AppCompatActivity implements CameraBrid
 
         viewModel.getFramesCollectedCount().observe(this, count -> {
             tvCount.setText(String.format("Frames: %d/15", count));
+            
+            // Força a habilitação do botão se atingir o limite
+            if (count >= 15 && viewModel.getState().getValue() != CalibrationState.CALIBRATING) {
+                btnCalibrate.setEnabled(true);
+            }
+
             // Precisamos passar as dimensões reais do frame para o heatmap processar os pontos corretamente
             heatmapView.updateCoverage(
                 com.example.visionproject.calibracao.repository.CalibrationFramesRepository.getInstance().getAll(),

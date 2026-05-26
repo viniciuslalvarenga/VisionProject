@@ -54,6 +54,7 @@ public class CalibrationViewModel extends AndroidViewModel {
     private final Mat mGray = new Mat();
     private Size lastImageSize = new Size(0, 0);
     private long lastDetectedLogMs = 0;
+    private long lastCaptureTimeMs = 0; // Cooldown para capturas
 
     public CalibrationViewModel(@NonNull Application application) {
         super(application);
@@ -97,20 +98,40 @@ public class CalibrationViewModel extends AndroidViewModel {
             boolean isStable = stabilityStrategy.checkStability(detection.corners);
 
             if (isSharp && isStable) {
-                state.postValue(CalibrationState.POSE_STABLE);
+                // Se já temos frames suficientes, mantemos o estado pronto para calibrar
+                if (framesRepo.size() >= 15) {
+                    state.postValue(CalibrationState.READY_TO_CALIBRATE);
+                } else {
+                    state.postValue(CalibrationState.POSE_STABLE);
+                }
+
                 if (Boolean.TRUE.equals(autoCaptureEnabled.getValue())) {
-                    double stability = stabilityStrategy.getCurrentStabilityScore();
-                    captureFrame(rgba, detection.corners, blurScore, stability);
+                    // Adiciona um cooldown de 1.5 segundos entre capturas automáticas
+                    if (System.currentTimeMillis() - lastCaptureTimeMs > 1500) {
+                        double stability = stabilityStrategy.getCurrentStabilityScore();
+                        captureFrame(rgba, detection.corners, blurScore, stability);
+                        lastCaptureTimeMs = System.currentTimeMillis();
+                    }
                 }
             } else {
-                state.postValue(CalibrationState.DETECTING);
+                // Se o tabuleiro sumir ou tremer, mas já temos o mínimo, mantemos "READY"
+                if (framesRepo.size() >= 15) {
+                    state.postValue(CalibrationState.READY_TO_CALIBRATE);
+                } else {
+                    state.postValue(CalibrationState.DETECTING);
+                }
+                
                 if (isStable && !isSharp && Boolean.TRUE.equals(autoCaptureEnabled.getValue())) {
-                    // Log rejection due to blur if stable but blurry
                     CalibrationCsvLogger.getInstance().logFrameRejected("blur", blurScore);
                 }
             }
         } else {
-            state.postValue(CalibrationState.IDLE);
+            // Mesmo sem detecção, se temos os frames, o botão deve continuar ativo
+            if (framesRepo.size() >= 15) {
+                state.postValue(CalibrationState.READY_TO_CALIBRATE);
+            } else {
+                state.postValue(CalibrationState.IDLE);
+            }
             stabilityStrategy.reset();
         }
     }
