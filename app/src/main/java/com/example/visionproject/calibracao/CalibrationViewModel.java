@@ -98,40 +98,25 @@ public class CalibrationViewModel extends AndroidViewModel {
             boolean isStable = stabilityStrategy.checkStability(detection.corners);
 
             if (isSharp && isStable) {
-                // Se já temos frames suficientes, mantemos o estado pronto para calibrar
-                if (framesRepo.size() >= 15) {
-                    state.postValue(CalibrationState.READY_TO_CALIBRATE);
-                } else {
-                    state.postValue(CalibrationState.POSE_STABLE);
-                }
+                state.postValue(CalibrationState.POSE_STABLE);
 
                 if (Boolean.TRUE.equals(autoCaptureEnabled.getValue())) {
-                    // Adiciona um cooldown de 1.5 segundos entre capturas automáticas
-                    if (System.currentTimeMillis() - lastCaptureTimeMs > 1500) {
+                    // Cooldown reduzido para 800ms para permitir coleta mais rápida de múltiplos frames
+                    if (System.currentTimeMillis() - lastCaptureTimeMs > 800) {
                         double stability = stabilityStrategy.getCurrentStabilityScore();
                         captureFrame(rgba, detection.corners, blurScore, stability);
                         lastCaptureTimeMs = System.currentTimeMillis();
                     }
                 }
             } else {
-                // Se o tabuleiro sumir ou tremer, mas já temos o mínimo, mantemos "READY"
-                if (framesRepo.size() >= 15) {
-                    state.postValue(CalibrationState.READY_TO_CALIBRATE);
-                } else {
-                    state.postValue(CalibrationState.DETECTING);
-                }
+                state.postValue(CalibrationState.DETECTING);
                 
                 if (isStable && !isSharp && Boolean.TRUE.equals(autoCaptureEnabled.getValue())) {
                     CalibrationCsvLogger.getInstance().logFrameRejected("blur", blurScore);
                 }
             }
         } else {
-            // Mesmo sem detecção, se temos os frames, o botão deve continuar ativo
-            if (framesRepo.size() >= 15) {
-                state.postValue(CalibrationState.READY_TO_CALIBRATE);
-            } else {
-                state.postValue(CalibrationState.IDLE);
-            }
+            state.postValue(CalibrationState.IDLE);
             stabilityStrategy.reset();
         }
     }
@@ -168,10 +153,6 @@ public class CalibrationViewModel extends AndroidViewModel {
         CalibrationCsvLogger.getInstance().logFrameCaptured(frame, frameIdx);
         framesCollectedCount.postValue(framesRepo.size());
         state.postValue(CalibrationState.CAPTURED);
-        
-        if (framesRepo.size() >= 15) {
-            state.postValue(CalibrationState.READY_TO_CALIBRATE);
-        }
     }
 
     private void saveCapturedImage(Mat rgba, int index) {
@@ -279,26 +260,45 @@ public class CalibrationViewModel extends AndroidViewModel {
 
     public void saveResult() {
         CalibrationResult res = result.getValue();
+        
+        // Se ainda não calibrou mas tem frames suficientes, calibra e depois salva
+        if (res == null && framesRepo.size() >= 15) {
+            userMessage.setValue("Processando calibração antes de salvar...");
+            state.setValue(CalibrationState.CALIBRATING);
+            executor.execute(() -> {
+                try {
+                    CalibrationResult newRes = pipeline.run(framesRepo.getAll(), patternSpec, lastImageSize);
+                    if (newRes != null) {
+                        result.postValue(newRes);
+                        state.postValue(CalibrationState.DONE);
+                        // Chama o salvamento após o cálculo
+                        saveResultInternal(newRes);
+                    }
+                } catch (Exception e) {
+                    userMessage.postValue("Erro ao processar: " + e.getMessage());
+                    state.postValue(CalibrationState.ERROR);
+                }
+            });
+            return;
+        }
+
         if (res != null) {
-            try {
-                // 1. Salva o JSON (Parâmetros intrínsecos) na pasta pública Documents/VisionProject
-                String jsonPath = CalibrationJsonStore.saveToPublicDocuments(res, getApplication());
-                
-                // 2. Salva o CSV (Rastreabilidade/Log) na pasta pública Documents/VisionProject
-                CalibrationCsvLogger.getInstance().logJsonExported(jsonPath);
-                CalibrationCsvLogger.getInstance().logCalibrationDone(res, res.getPerImageReprojectionError());
-                CalibrationCsvLogger.getInstance().saveSession(getApplication());
-                
-                // Mensagem detalhada para o usuário
-                userMessage.setValue("Sucesso! JSON e CSV salvos em:\nDocuments/VisionProject");
-                
-                Log.d(TAG, "Resultado salvo. JSON: " + jsonPath);
-            } catch (Exception e) {
-                userMessage.setValue("Erro ao salvar: " + e.getMessage());
-                Log.e(TAG, "Erro ao salvar resultado", e);
-            }
+            saveResultInternal(res);
         } else {
-            userMessage.setValue("Não há resultado de calibração para salvar.");
+            userMessage.setValue("Capture pelo menos 15 frames primeiro.");
+        }
+    }
+
+    private void saveResultInternal(CalibrationResult res) {
+        try {
+            String jsonPath = CalibrationJsonStore.saveToPublicDocuments(res, getApplication());
+            CalibrationCsvLogger.getInstance().logJsonExported(jsonPath);
+            CalibrationCsvLogger.getInstance().logCalibrationDone(res, res.getPerImageReprojectionError());
+            CalibrationCsvLogger.getInstance().saveSession(getApplication());
+            
+            userMessage.postValue("Sucesso! JSON e CSV salvos em:\nDocuments/VisionProject");
+        } catch (Exception e) {
+            userMessage.postValue("Erro ao salvar: " + e.getMessage());
         }
     }
 

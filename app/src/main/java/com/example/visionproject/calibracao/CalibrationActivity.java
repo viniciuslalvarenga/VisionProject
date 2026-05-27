@@ -85,12 +85,15 @@ public class CalibrationActivity extends AppCompatActivity implements CameraBrid
             int frameCount = viewModel.getFramesCollectedCount().getValue() != null ? 
                              viewModel.getFramesCollectedCount().getValue() : 0;
 
-            // O botão calibrar agora depende da contagem de frames acumulados
+            // Calibrar fica ativo a partir de 15 frames
             btnCalibrate.setEnabled((frameCount >= 15 && state != CalibrationState.CALIBRATING) || 
                                   state == CalibrationState.DONE || 
                                   state == CalibrationState.ERROR);
 
-            btnSave.setEnabled(state == CalibrationState.DONE);
+            // Salvar também fica ativo a partir de 15 frames para permitir fluxo rápido
+            btnSave.setEnabled((frameCount >= 15 && state != CalibrationState.CALIBRATING) || 
+                             state == CalibrationState.DONE);
+
             btnUndistort.setEnabled(state == CalibrationState.DONE);
             progressBar.setVisibility(state == CalibrationState.CALIBRATING ? View.VISIBLE : View.GONE);
             
@@ -100,14 +103,15 @@ public class CalibrationActivity extends AppCompatActivity implements CameraBrid
         });
 
         viewModel.getFramesCollectedCount().observe(this, count -> {
-            tvCount.setText(String.format("Frames: %d/15", count));
+            // A contagem agora é contínua (ex: 18/15) para mostrar que passou do mínimo
+            tvCount.setText(String.format("Frames: %d%s", count, count >= 15 ? " (Pronto)" : "/15"));
             
-            // Força a habilitação do botão se atingir o limite
+            // Força a habilitação do botão se atingir o limite caso o estado não tenha mudado
             if (count >= 15 && viewModel.getState().getValue() != CalibrationState.CALIBRATING) {
                 btnCalibrate.setEnabled(true);
+                btnSave.setEnabled(true);
             }
 
-            // Precisamos passar as dimensões reais do frame para o heatmap processar os pontos corretamente
             heatmapView.updateCoverage(
                 com.example.visionproject.calibracao.repository.CalibrationFramesRepository.getInstance().getAll(),
                 viewModel.getLastImageSize()
