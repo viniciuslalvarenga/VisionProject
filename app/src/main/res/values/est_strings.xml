@@ -1,0 +1,20 @@
+<resources>
+    <string name="est_title_main">Módulo 4 - Visão Estéreo</string>
+    <string name="est_title_capture">Captura Par Estéreo</string>
+    <string name="est_title_processing">Processamento Estéreo</string>
+    <string name="est_title_depth">Medição de Profundidade</string>
+
+    <string name="btn_estereo">Módulo 4: Estéreo</string>
+    <string name="est_btn_capture">Capturar Par</string>
+    <string name="est_btn_process">Processar Par</string>
+    <string name="est_btn_depth">Medir Profundidade</string>
+    <string name="est_btn_baseline">Baseline: %1$d mm</string>
+
+    <string name="est_status_calib_ok">Calibração carregada: fx=%1$.1f RMS=%2$.2f</string>
+    <string name="est_status_calib_error">Calibração não encontrada!</string>
+    <string name="est_btn_go_calib">Ir para Módulo 3 (Calibrar)</string>
+
+    <string name="est_msg_pos_left">POSICIONE NA POSIÇÃO 1 (ESQUERDA)</string>
+    <string name="est_msg_pos_right">AGORA POSIÇÃO 2 (DIREITA)</string>
+    <string name="est_msg_pair_ready">PAR COMPLETO - PRONTO PARA PROCESSAR</string>
+</resources>

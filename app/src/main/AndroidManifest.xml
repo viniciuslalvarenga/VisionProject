@@ -39,6 +39,32 @@
             android:label="@string/btn_calibracao"
             android:parentActivityName=".MainActivity"
             android:theme="@style/Theme.VisionProject.NoWindowBackground" />
+
+        <!-- Módulo 4: Visão Estéreo -->
+        <activity
+            android:name=".estereo.EstereoMainActivity"
+            android:exported="false"
+            android:label="@string/est_title_main"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.VisionProject.NoWindowBackground" />
+        <activity
+            android:name=".estereo.CaptureActivity"
+            android:exported="false"
+            android:label="@string/est_title_capture"
+            android:parentActivityName=".estereo.EstereoMainActivity"
+            android:theme="@style/Theme.VisionProject.NoWindowBackground" />
+        <activity
+            android:name=".estereo.ProcessingActivity"
+            android:exported="false"
+            android:label="@string/est_title_processing"
+            android:parentActivityName=".estereo.EstereoMainActivity"
+            android:theme="@style/Theme.VisionProject.NoWindowBackground" />
+        <activity
+            android:name=".estereo.DepthActivity"
+            android:exported="false"
+            android:label="@string/est_title_depth"
+            android:parentActivityName=".estereo.EstereoMainActivity"
+            android:theme="@style/Theme.VisionProject.NoWindowBackground" />
     </application>
 
 </manifest>

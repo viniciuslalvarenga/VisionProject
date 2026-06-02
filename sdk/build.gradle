@@ -104,15 +104,12 @@ println "OpenCV: " +openCVersionName + " " + project.buildscript.sourceFile
 
 android {
     namespace 'org.opencv'
-    compileSdkVersion 36
+    compileSdkVersion 35
     ndkVersion "30.0.14904198"
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 36
-
-        versionCode openCVersionCode
-        versionName openCVersionName
+        targetSdkVersion 35
 
         externalNativeBuild {
             cmake {
@@ -124,6 +121,7 @@ android {
 
     lint {
         abortOnError false
+        targetSdk 34
     }
     
     android {
@@ -182,6 +180,9 @@ android {
             withSourcesJar()
             withJavadocJar()
         }
+    }
+    testOptions {
+        targetSdk 34
     }
 
 }

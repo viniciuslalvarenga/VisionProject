@@ -173,6 +173,11 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             startActivity(intent);
         });
 
+        findViewById(R.id.btn_estereo).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, com.example.visionproject.estereo.EstereoMainActivity.class);
+            startActivity(intent);
+        });
+
         checkCameraPermission();
     }
 
