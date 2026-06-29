@@ -178,6 +178,11 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             startActivity(intent);
         });
 
+        findViewById(R.id.btn_vio).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, com.example.visionproject.vio.VioMainActivity.class);
+            startActivity(intent);
+        });
+
         checkCameraPermission();
     }
 

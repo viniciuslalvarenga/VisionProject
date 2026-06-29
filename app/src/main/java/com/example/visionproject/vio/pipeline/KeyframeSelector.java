@@ -1,0 +1,91 @@
+package com.example.visionproject.vio.pipeline;
+
+import com.example.visionproject.vio.model.FrameSample;
+import com.example.visionproject.vio.model.KeyframePair;
+import com.example.visionproject.vio.repository.VioCsvLogger;
+import com.example.visionproject.vio.strategy.KeyframeCriteria;
+import com.example.visionproject.vio.strategy.OrbMatcherStrategy;
+
+import org.opencv.core.DMatch;
+import org.opencv.core.KeyPoint;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+
+import java.util.List;
+import java.util.Locale;
+
+public class KeyframeSelector {
+    private final KeyframeCriteria criteria;
+    private final OrbMatcherStrategy orb;
+    private FrameSample ref;
+
+    public KeyframeSelector(KeyframeCriteria criteria) {
+        this.criteria = criteria;
+        this.orb = new OrbMatcherStrategy();
+    }
+
+    public KeyframePair tryPair(FrameSample cur, ImuNavigator imu, Mat K, Mat distCoeffs) {
+        if (ref == null) { ref = cur; return null; }
+
+        double baseline = imu.distanceBetween(ref.tNs, cur.tNs);
+        if (baseline < criteria.getMinBaseline()) {
+            logReject("baseline", baseline, 0, 0);
+            return null;
+        }
+
+        OrbMatcherStrategy.MatchResult m = orb.match(ref.rgb, cur.rgb, K, distCoeffs);
+        int matches = m.good.size();
+        if (matches < criteria.getMinMatches()) {
+            logReject("matches", baseline, 0, matches);
+            return null;
+        }
+
+        double parallax = medianPixelShift(m);
+        if (parallax < criteria.getMinParallax()) {
+            logReject("parallax", baseline, parallax, matches);
+            return null;
+        }
+
+        VioCsvLogger.getInstance().logDetailed(
+                "KEYFRAME_ACCEPTED", null, null, null,
+                null, null, null, null, null, null, null, null, null, null,
+                baseline, parallax, matches,
+                null, null, null, null, null, null, null,
+                String.format(Locale.US, "baseline=%.3fm parallax=%.1fpx matches=%d", baseline, parallax, matches));
+
+        return new KeyframePair(ref, cur, baseline, parallax, m);
+    }
+
+    public void resetReference(FrameSample newRef) { this.ref = newRef; }
+    public FrameSample getReference() { return ref; }
+
+    public double getBaselineRatio(ImuNavigator imu, long curTns) {
+        if (ref == null || imu == null) return 0;
+        double baseline = imu.distanceBetween(ref.tNs, curTns);
+        return baseline / criteria.getMinBaseline();
+    }
+
+    private double medianPixelShift(OrbMatcherStrategy.MatchResult m) {
+        if (m.good.isEmpty()) return 0;
+        List<KeyPoint> kpLList = m.kpL.toList();
+        List<KeyPoint> kpRList = m.kpR.toList();
+        double[] shifts = new double[m.good.size()];
+        for (int i = 0; i < m.good.size(); i++) {
+            DMatch d = m.good.get(i);
+            Point a = kpLList.get(d.queryIdx).pt;
+            Point b = kpRList.get(d.trainIdx).pt;
+            shifts[i] = Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+        }
+        java.util.Arrays.sort(shifts);
+        return shifts[shifts.length / 2];
+    }
+
+    private void logReject(String reason, double baseline, double parallax, int matches) {
+        VioCsvLogger.getInstance().logDetailed(
+                "KEYFRAME_REJECTED", null, null, null,
+                null, null, null, null, null, null, null, null, null, null,
+                baseline, parallax, matches,
+                null, null, null, null, null, null, null,
+                "reason=" + reason);
+    }
+}

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#1A1A2E">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/vio_title_imu_test"
+        android:textColor="#E0E0E0"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="12dp"/>
+
+    <TextView
+        android:id="@+id/tv_imu_instruction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pressione INICIAR para começar o experimento de drift IMU."
+        android:textColor="#FFD700"
+        android:textSize="13sp"
+        android:padding="8dp"
+        android:background="#22FFFFFF"
+        android:gravity="center"/>
+
+    <com.example.visionproject.vio.ui.ImuDriftPlotView
+        android:id="@+id/vio_imu_plot"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#0D0D1A"/>
+
+    <TextView
+        android:id="@+id/tv_imu_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#80FF80"
+        android:textSize="13sp"
+        android:padding="8dp"
+        android:gravity="center"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/btn_imu_start"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/vio_btn_imu_start"/>
+
+        <Button
+            android:id="@+id/btn_imu_stop"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/vio_btn_imu_stop"
+            android:enabled="false"/>
+
+        <Button
+            android:id="@+id/btn_imu_save"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/vio_btn_imu_save"/>
+    </LinearLayout>
+
+</LinearLayout>

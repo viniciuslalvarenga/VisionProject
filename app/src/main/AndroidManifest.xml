@@ -65,6 +65,32 @@
             android:label="@string/est_title_depth"
             android:parentActivityName=".estereo.EstereoMainActivity"
             android:theme="@style/Theme.VisionProject.NoWindowBackground" />
+
+        <!-- Módulo 5: VIO (Estéreo sem suporte) -->
+        <activity
+            android:name=".vio.VioMainActivity"
+            android:exported="false"
+            android:label="@string/vio_title_main"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.VisionProject.NoWindowBackground" />
+        <activity
+            android:name=".vio.VioCaptureActivity"
+            android:exported="false"
+            android:label="@string/vio_title_capture"
+            android:parentActivityName=".vio.VioMainActivity"
+            android:theme="@style/Theme.VisionProject.NoWindowBackground" />
+        <activity
+            android:name=".vio.VioProcessingActivity"
+            android:exported="false"
+            android:label="@string/vio_title_processing"
+            android:parentActivityName=".vio.VioMainActivity"
+            android:theme="@style/Theme.VisionProject.NoWindowBackground" />
+        <activity
+            android:name=".vio.VioImuTestActivity"
+            android:exported="false"
+            android:label="@string/vio_title_imu_test"
+            android:parentActivityName=".vio.VioMainActivity"
+            android:theme="@style/Theme.VisionProject.NoWindowBackground" />
     </application>
 
 </manifest>

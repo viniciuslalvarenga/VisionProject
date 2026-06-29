@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#1A1A2E">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/vio_title_main"
+        android:textColor="#E0E0E0"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/tv_vio_calib_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Verificando calibração..."
+        android:textColor="#80FF80"
+        android:textSize="14sp"
+        android:padding="8dp"
+        android:background="#22FFFFFF"/>
+
+    <TextView
+        android:id="@+id/tv_vio_main_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#FFD700"
+        android:textSize="13sp"
+        android:padding="8dp"
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/btn_vio_capture"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/vio_btn_capture"
+        android:layout_marginTop="16dp"
+        android:enabled="false"/>
+
+    <Button
+        android:id="@+id/btn_vio_imu_test"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/vio_btn_imu_test"
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/btn_vio_go_calib"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/vio_btn_go_calib"
+        android:layout_marginTop="8dp"
+        android:enabled="false"/>
+
+</LinearLayout>
