@@ -17,6 +17,7 @@ import com.example.visionproject.estereo.strategy.SgbmDisparityStrategy;
 import com.example.visionproject.vio.VioState;
 import com.example.visionproject.vio.export.PlyExporterMetric;
 import com.example.visionproject.vio.model.CalibratedRectifyResult;
+import com.example.visionproject.vio.model.DepthEstimateResult;
 import com.example.visionproject.vio.model.KeyframePair;
 import com.example.visionproject.vio.model.RelativePoseResult;
 import com.example.visionproject.vio.pipeline.CalibratedRectifier;
@@ -44,7 +45,7 @@ public class VioProcessingViewModel extends AndroidViewModel {
     private final MutableLiveData<VioState>  state   = new MutableLiveData<>(VioState.IDLE);
     private final MutableLiveData<Bitmap>    artifact = new MutableLiveData<>();
     private final MutableLiveData<String>    status  = new MutableLiveData<>("");
-    private final MutableLiveData<Double>    medianZ = new MutableLiveData<>(Double.NaN);
+    private final MutableLiveData<DepthEstimateResult> depthResult = new MutableLiveData<>();
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private Mat xyzMat;
@@ -54,11 +55,11 @@ public class VioProcessingViewModel extends AndroidViewModel {
 
     public VioProcessingViewModel(@NonNull Application app) { super(app); }
 
-    public LiveData<VioState> getState()   { return state; }
-    public LiveData<Bitmap>   getArtifact(){ return artifact; }
-    public LiveData<String>   getStatus()  { return status; }
-    public LiveData<Double>   getMedianZ() { return medianZ; }
-    public Mat getXyzMat()                 { return xyzMat; }
+    public LiveData<VioState>            getState()      { return state; }
+    public LiveData<Bitmap>             getArtifact()   { return artifact; }
+    public LiveData<String>             getStatus()     { return status; }
+    public LiveData<DepthEstimateResult> getDepthResult(){ return depthResult; }
+    public Mat getXyzMat()                               { return xyzMat; }
 
     public void runPipeline() {
         KeyframePair pair = KeyframePairRepository.getInstance().getPair();
@@ -154,7 +155,7 @@ public class VioProcessingViewModel extends AndroidViewModel {
                     if (xyzMat != null) xyzMat.release();
                     xyzMat = DepthFromQ.reproject(bestDisp32f, rectResult.Q);
                     double mZ = DepthFromQ.medianZ(xyzMat);
-                    medianZ.postValue(mZ);
+                    depthResult.postValue(new DepthEstimateResult(xyzMat, mZ, Double.NaN));
                     logger.logDetailed("DEPTH_QUERY", currentSceneId, null, null,
                             null,null,null,null,null,null,null,null,null,null,
                             null,null,null,null,null,cr.getFx(),mZ,null,null,null,

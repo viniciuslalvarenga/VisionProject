@@ -18,8 +18,7 @@ public class ImuNavigator {
     private long tPrev = -1;
     private double restAccum = 0;
 
-    private static final double EPS   = 0.08;
-    private static final double REST_T = 0.30;
+    private static final double EPS    = 0.08;
     private static final double DT_MAX = 0.1;
 
     private final List<Pose> history = Collections.synchronizedList(new ArrayList<>());

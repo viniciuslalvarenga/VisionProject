@@ -30,7 +30,7 @@
             android:id="@+id/tv_vio_state"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Estado: IDLE"
+            android:text="@string/vio_state_idle"
             android:textColor="#FFFFFF"
             android:textSize="14sp"/>
 
@@ -38,7 +38,7 @@
             android:id="@+id/tv_vio_offset"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Offset câm↔IMU: -- ms"
+            android:text="@string/vio_offset_default"
             android:textColor="#FFD700"
             android:textSize="12sp"/>
     </LinearLayout>
@@ -59,6 +59,7 @@
         android:background="#88000000"
         android:padding="8dp"
         android:gravity="center"
+        style="?android:attr/buttonBarStyle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -69,7 +70,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/vio_btn_start"
-            android:textSize="11sp"/>
+            android:textSize="11sp"
+            style="?android:attr/buttonBarButtonStyle"/>
 
         <Button
             android:id="@+id/btn_vio_pause"
@@ -77,7 +79,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/vio_btn_pause"
-            android:textSize="11sp"/>
+            android:textSize="11sp"
+            style="?android:attr/buttonBarButtonStyle"/>
 
         <Button
             android:id="@+id/btn_vio_capture_pair"
@@ -86,7 +89,8 @@
             android:layout_weight="1"
             android:text="@string/vio_btn_capture_pair"
             android:textSize="11sp"
-            android:enabled="false"/>
+            android:enabled="false"
+            style="?android:attr/buttonBarButtonStyle"/>
 
         <Button
             android:id="@+id/btn_vio_process"
@@ -95,7 +99,8 @@
             android:layout_weight="1"
             android:text="@string/vio_btn_process"
             android:textSize="11sp"
-            android:enabled="false"/>
+            android:enabled="false"
+            style="?android:attr/buttonBarButtonStyle"/>
 
         <Button
             android:id="@+id/btn_vio_imu_test"
@@ -103,7 +108,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/vio_btn_imu_test_short"
-            android:textSize="11sp"/>
+            android:textSize="11sp"
+            style="?android:attr/buttonBarButtonStyle"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -30,12 +30,11 @@ public class VioMainActivity extends AppCompatActivity {
 
         viewModel.getCalibration().observe(this, cr -> {
             if (cr == null) {
-                tvCalib.setText("Calibração: NÃO ENCONTRADA");
+                tvCalib.setText(R.string.vio_calib_missing);
                 btnCapture.setEnabled(false);
                 btnGoCalib.setEnabled(true);
             } else {
-                tvCalib.setText(String.format(java.util.Locale.US,
-                        "Calibração: OK  fx=%.1f  RMS=%.3f", cr.getFx(), cr.getRms()));
+                tvCalib.setText(getString(R.string.vio_calib_ok_format, cr.getFx(), cr.getRms()));
                 btnCapture.setEnabled(true);
                 btnGoCalib.setEnabled(false);
             }

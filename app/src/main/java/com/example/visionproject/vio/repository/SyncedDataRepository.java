@@ -4,9 +4,7 @@ import com.example.visionproject.vio.model.FrameSample;
 import com.example.visionproject.vio.model.ImuSample;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
-import java.util.List;
 
 public class SyncedDataRepository {
     private static final int MAX_FRAMES = 30;
@@ -36,14 +34,6 @@ public class SyncedDataRepository {
 
     public synchronized FrameSample getLatestFrame() {
         return frames.isEmpty() ? null : frames.peekLast();
-    }
-
-    public synchronized List<FrameSample> getFramesCopy() {
-        return new ArrayList<>(frames);
-    }
-
-    public synchronized List<ImuSample> getImuSamplesCopy() {
-        return new ArrayList<>(imuSamples);
     }
 
     public synchronized void clear() {

@@ -22,4 +22,14 @@
     <string name="vio_btn_imu_start">▶ Iniciar</string>
     <string name="vio_btn_imu_stop">⏹ Parar</string>
     <string name="vio_btn_imu_save">💾 Salvar dados</string>
+
+    <string name="vio_status_ready">Pronto para processar</string>
+    <string name="vio_median_z_default">Mediana Z: --</string>
+    <string name="vio_state_format">Estado: %1$s</string>
+    <string name="vio_calib_checking">Verificando calibração…</string>
+    <string name="vio_calib_missing">Calibração NÃO ENCONTRADA. Execute o Módulo 3 primeiro.</string>
+    <string name="vio_calib_ok_format">Calibração: OK  fx=%.1f  RMS=%.3f</string>
+    <string name="vio_state_idle">Estado: IDLE</string>
+    <string name="vio_offset_default">Offset câm↔IMU: -- ms</string>
+    <string name="vio_instruction_default">Pressione INICIAR para começar o experimento de drift IMU.</string>
 </resources>

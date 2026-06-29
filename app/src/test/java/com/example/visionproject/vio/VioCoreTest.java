@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.example.visionproject.vio.factory.KeyframeCriteriaFactory;
+import com.example.visionproject.vio.model.Pose;
 import com.example.visionproject.vio.pipeline.ImuNavigator;
 import com.example.visionproject.vio.strategy.BaselineParallaxStrategy;
 import com.example.visionproject.vio.strategy.KeyframeCriteria;
@@ -15,12 +16,7 @@ public class VioCoreTest {
 
     @Test
     public void imuNavigatorIntegratesAcceleration() {
-        ImuNavigator navigator = new ImuNavigator(new ZuptStrategy() {
-            @Override
-            public boolean isAtRest(double magnitude, double dt, double restAccum) {
-                return false;
-            }
-        });
+        ImuNavigator navigator = new ImuNavigator((magnitude, dt, restAccum) -> false);
 
         navigator.resetWithPose(new double[]{0.0, 0.0, 0.0}, new float[]{0f, 0f, 0f, 1f});
         navigator.onAccel(0L, new float[]{1f, 0f, 0f}, new float[]{0f, 0f, 0f, 1f});

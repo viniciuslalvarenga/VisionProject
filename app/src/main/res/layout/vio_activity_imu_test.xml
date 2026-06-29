@@ -19,7 +19,7 @@
         android:id="@+id/tv_imu_instruction"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Pressione INICIAR para começar o experimento de drift IMU."
+        android:text="@string/vio_instruction_default"
         android:textColor="#FFD700"
         android:textSize="13sp"
         android:padding="8dp"
@@ -48,14 +48,16 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:gravity="center">
+        android:gravity="center"
+        style="?android:attr/buttonBarStyle">
 
         <Button
             android:id="@+id/btn_imu_start"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/vio_btn_imu_start"/>
+            android:text="@string/vio_btn_imu_start"
+            style="?android:attr/buttonBarButtonStyle"/>
 
         <Button
             android:id="@+id/btn_imu_stop"
@@ -63,14 +65,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/vio_btn_imu_stop"
-            android:enabled="false"/>
+            android:enabled="false"
+            style="?android:attr/buttonBarButtonStyle"/>
 
         <Button
             android:id="@+id/btn_imu_save"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/vio_btn_imu_save"/>
+            android:text="@string/vio_btn_imu_save"
+            style="?android:attr/buttonBarButtonStyle"/>
     </LinearLayout>
 
 </LinearLayout>

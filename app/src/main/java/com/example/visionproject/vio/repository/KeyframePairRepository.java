@@ -15,6 +15,5 @@ public class KeyframePairRepository {
 
     public synchronized void setPair(KeyframePair p) { this.pair = p; }
     public synchronized KeyframePair getPair()       { return pair; }
-    public synchronized boolean hasPair()            { return pair != null; }
     public synchronized void clear()                 { pair = null; }
 }

@@ -20,7 +20,7 @@
         android:id="@+id/tv_vio_calib_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Verificando calibração..."
+        android:text="@string/vio_calib_checking"
         android:textColor="#80FF80"
         android:textSize="14sp"
         android:padding="8dp"

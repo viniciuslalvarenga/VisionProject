@@ -34,15 +34,12 @@ public class KeyframeSelector {
         }
 
         OrbMatcherStrategy.MatchResult m = orb.match(ref.rgb, cur.rgb, K, distCoeffs);
-        int matches = m.good.size();
-        if (matches < criteria.getMinMatches()) {
-            logReject("matches", baseline, 0, matches);
-            return null;
-        }
-
         double parallax = medianPixelShift(m);
-        if (parallax < criteria.getMinParallax()) {
-            logReject("parallax", baseline, parallax, matches);
+        int matches = m.good.size();
+
+        if (!criteria.isReady(baseline, parallax, matches)) {
+            logReject(matches < criteria.getMinMatches() ? "matches" : "parallax",
+                    baseline, parallax, matches);
             return null;
         }
 

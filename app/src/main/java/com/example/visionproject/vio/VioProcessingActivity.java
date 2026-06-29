@@ -1,6 +1,5 @@
 package com.example.visionproject.vio;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.InputType;
 import android.widget.Button;
@@ -40,10 +39,10 @@ public class VioProcessingActivity extends AppCompatActivity {
 
         disparityView.setDepthClickListener((z, px, py) -> {
             lastQueriedZ = z;
+            double mZ = viewModel.getDepthResult().getValue() != null
+                    ? viewModel.getDepthResult().getValue().medianZ : Double.NaN;
             tvMedianZ.setText(String.format(java.util.Locale.US,
-                    "Z clicado: %.3f m  Mediana: %.3f m", z,
-                    viewModel.getMedianZ().getValue() != null ?
-                    viewModel.getMedianZ().getValue() : Double.NaN));
+                    "Z clicado: %.3f m  Mediana: %.3f m", z, mZ));
         });
 
         observeViewModel();
@@ -52,7 +51,7 @@ public class VioProcessingActivity extends AppCompatActivity {
 
     private void observeViewModel() {
         viewModel.getState().observe(this, s -> {
-            tvStatus.setText("Estado: " + s.name());
+            tvStatus.setText(getString(R.string.vio_state_format, s.name()));
             boolean done = s == VioState.DONE;
             btnExportPly.setEnabled(done);
             btnCompareZ.setEnabled(done);
@@ -64,9 +63,9 @@ public class VioProcessingActivity extends AppCompatActivity {
                 disparityView.setXyzMat(viewModel.getXyzMat());
             }
         });
-        viewModel.getMedianZ().observe(this, z -> {
-            if (!Double.isNaN(z)) {
-                tvMedianZ.setText(String.format(java.util.Locale.US, "Mediana Z: %.3f m", z));
+        viewModel.getDepthResult().observe(this, dr -> {
+            if (dr != null && !Double.isNaN(dr.medianZ)) {
+                tvMedianZ.setText(String.format(java.util.Locale.US, "Mediana Z: %.3f m", dr.medianZ));
             }
         });
     }
