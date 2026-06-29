@@ -1,6 +1,5 @@
 package com.example.visionproject.vio;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.InputType;
 import android.widget.Button;
@@ -52,7 +51,7 @@ public class VioProcessingActivity extends AppCompatActivity {
 
     private void observeViewModel() {
         viewModel.getState().observe(this, s -> {
-            tvStatus.setText("Estado: " + s.name());
+            tvStatus.setText(getString(R.string.vio_state_format, s.name()));
             boolean done = s == VioState.DONE;
             btnExportPly.setEnabled(done);
             btnCompareZ.setEnabled(done);

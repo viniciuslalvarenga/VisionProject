@@ -9,7 +9,7 @@
         android:id="@+id/tv_vio_proc_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Pronto para processar"
+        android:text="@string/vio_status_ready"
         android:textColor="#E0E0E0"
         android:textSize="13sp"
         android:padding="8dp"
@@ -19,7 +19,7 @@
         android:id="@+id/tv_vio_median_z"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Mediana Z: --"
+        android:text="@string/vio_median_z_default"
         android:textColor="#FFD700"
         android:textSize="13sp"
         android:padding="4dp"/>
@@ -36,7 +36,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:gravity="center">
+        android:gravity="center"
+        style="?android:attr/buttonBarStyle">
 
         <Button
             android:id="@+id/btn_vio_run_pipeline"
@@ -44,7 +45,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/vio_btn_run"
-            android:textSize="12sp"/>
+            android:textSize="12sp"
+            style="?android:attr/buttonBarButtonStyle"/>
 
         <Button
             android:id="@+id/btn_vio_compare_z"
@@ -53,7 +55,8 @@
             android:layout_weight="1"
             android:text="@string/vio_btn_compare_z"
             android:textSize="12sp"
-            android:enabled="false"/>
+            android:enabled="false"
+            style="?android:attr/buttonBarButtonStyle"/>
 
         <Button
             android:id="@+id/btn_vio_export_ply"
@@ -62,7 +65,8 @@
             android:layout_weight="1"
             android:text="@string/vio_btn_export_ply"
             android:textSize="12sp"
-            android:enabled="false"/>
+            android:enabled="false"
+            style="?android:attr/buttonBarButtonStyle"/>
     </LinearLayout>
 
 </LinearLayout>

@@ -4,11 +4,11 @@ public class VioFusion {
     private static final float ALPHA_DEFAULT = 0.05f;
 
     private float alpha;
-    private double[] fusedP = {0, 0, 0};
+    private final double[] fusedP = {0, 0, 0};
     private float[] fusedQ = {0, 0, 0, 1};
 
     public VioFusion() { this.alpha = ALPHA_DEFAULT; }
-    public VioFusion(float alpha) { this.alpha = alpha; }
+    public VioFusion(float alpha) { this.alpha = alpha; } // available for non-default alpha experiments
 
     public void fusePose(double[] poseVisual, float[] qVisual,
                          double[] poseIMU, float[] qIMU) {

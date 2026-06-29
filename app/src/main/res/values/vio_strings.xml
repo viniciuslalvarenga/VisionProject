@@ -22,4 +22,8 @@
     <string name="vio_btn_imu_start">▶ Iniciar</string>
     <string name="vio_btn_imu_stop">⏹ Parar</string>
     <string name="vio_btn_imu_save">💾 Salvar dados</string>
+
+    <string name="vio_status_ready">Pronto para processar</string>
+    <string name="vio_median_z_default">Mediana Z: --</string>
+    <string name="vio_state_format">Estado: %1$s</string>
 </resources>
