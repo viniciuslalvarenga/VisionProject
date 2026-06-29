@@ -54,7 +54,6 @@ public class KeyframeSelector {
     }
 
     public void resetReference(FrameSample newRef) { this.ref = newRef; }
-    public FrameSample getReference() { return ref; }
 
     public double getBaselineRatio(ImuNavigator imu, long curTns) {
         if (ref == null || imu == null) return 0;
