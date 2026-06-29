@@ -8,7 +8,6 @@ public class VioFusion {
     private float[] fusedQ = {0, 0, 0, 1};
 
     public VioFusion() { this.alpha = ALPHA_DEFAULT; }
-    public VioFusion(float alpha) { this.alpha = alpha; } // available for non-default alpha experiments
 
     public void fusePose(double[] poseVisual, float[] qVisual,
                          double[] poseIMU, float[] qIMU) {
@@ -19,10 +18,8 @@ public class VioFusion {
         ImuNavigator.getInstance().resetWithPose(fusedP, fusedQ);
     }
 
-    public double[] getFusedPosition()    { return fusedP.clone(); }
-    public float[]  getFusedOrientation() { return fusedQ.clone(); }
-    public float    getAlpha()            { return alpha; }
-    public void     setAlpha(float a)     { this.alpha = a; }
+    public double[] getFusedPosition() { return fusedP.clone(); }
+    public float    getAlpha()         { return alpha; }
 
     private static float[] slerp(float[] q0, float[] q1, float t) {
         float dot = q0[0]*q1[0] + q0[1]*q1[1] + q0[2]*q1[2] + q0[3]*q1[3];
