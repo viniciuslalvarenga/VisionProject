@@ -64,6 +64,11 @@ public class VioProcessingViewModel extends AndroidViewModel {
     public void runPipeline() {
         KeyframePair pair = KeyframePairRepository.getInstance().getPair();
         if (pair == null) { state.postValue(VioState.ERROR); status.postValue("Par não encontrado."); return; }
+        if (pair.a == null || pair.b == null || pair.matches == null) {
+            state.postValue(VioState.ERROR);
+            status.postValue("Par inválido (frames nulos). Capture novamente.");
+            return;
+        }
 
         CalibrationResult cr = CalibrationJsonStore.load(getApplication());
         if (cr == null) { state.postValue(VioState.ERROR); status.postValue("Calibração não encontrada."); return; }
@@ -105,12 +110,20 @@ public class VioProcessingViewModel extends AndroidViewModel {
                 if (poseResult.inliers < 50) {
                     status.postValue("Aviso: inliers < 50 (" + poseResult.inliers + "). Resultado pode ser impreciso.");
                 }
-                if (poseResult.rotAngleDeg > 15.0) {
+                if (poseResult.rotAngleDeg > 30.0) {
                     logger.log("POSE_DEGENERATE", "rotAngleDeg=" + poseResult.rotAngleDeg);
+                    state.postValue(VioState.ERROR);
+                    status.postValue(String.format(Locale.US,
+                            "Pose degenerada (rot=%.0f°). Mova a câmera mais para o lado (translação pura, sem rotacionar).",
+                            poseResult.rotAngleDeg));
+                    return;
                 }
 
                 // Step 3: Rectification
                 status.postValue("Retificando par (stereoRectify calibrado)...");
+                if (pair.a.rgb == null || pair.a.rgb.empty()) {
+                    throw new NullPointerException("Frame A rgb está vazio");
+                }
                 Size imgSize = new Size(pair.a.rgb.cols(), pair.a.rgb.rows());
                 CalibratedRectifier rectifier = new CalibratedRectifier();
                 rectResult = rectifier.rectify(pair.matches.undL, pair.matches.undR,

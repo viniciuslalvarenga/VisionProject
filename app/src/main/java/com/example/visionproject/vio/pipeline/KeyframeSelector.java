@@ -17,7 +17,7 @@ import java.util.Locale;
 public class KeyframeSelector {
     private final KeyframeCriteria criteria;
     private final OrbMatcherStrategy orb;
-    private FrameSample ref;
+    private volatile FrameSample ref;
 
     public KeyframeSelector(KeyframeCriteria criteria) {
         this.criteria = criteria;
@@ -25,15 +25,22 @@ public class KeyframeSelector {
     }
 
     public KeyframePair tryPair(FrameSample cur, ImuNavigator imu, Mat K, Mat distCoeffs) {
-        if (ref == null) { ref = cur; return null; }
+        // Capture volatile ref once to avoid race with resetReference(null)
+        FrameSample localRef = this.ref;
+        if (localRef == null) { this.ref = cur; return null; }
 
-        double baseline = imu.distanceBetween(ref.tNs, cur.tNs);
+        double baseline = imu.distanceBetween(localRef.tNs, cur.tNs);
         if (baseline < criteria.getMinBaseline()) {
             logReject("baseline", baseline, 0, 0);
             return null;
         }
 
-        OrbMatcherStrategy.MatchResult m = orb.match(ref.rgb, cur.rgb, K, distCoeffs);
+        if (localRef.rgb == null || localRef.rgb.empty() || cur.rgb == null || cur.rgb.empty()) {
+            logReject("invalid_frame", baseline, 0, 0);
+            return null;
+        }
+
+        OrbMatcherStrategy.MatchResult m = orb.match(localRef.rgb, cur.rgb, K, distCoeffs);
         double parallax = medianPixelShift(m);
         int matches = m.good.size();
 
@@ -50,14 +57,15 @@ public class KeyframeSelector {
                 null, null, null, null, null, null, null,
                 String.format(Locale.US, "baseline=%.3fm parallax=%.1fpx matches=%d", baseline, parallax, matches));
 
-        return new KeyframePair(ref, cur, baseline, parallax, m);
+        return new KeyframePair(localRef, cur, baseline, parallax, m);
     }
 
     public void resetReference(FrameSample newRef) { this.ref = newRef; }
 
     public double getBaselineRatio(ImuNavigator imu, long curTns) {
-        if (ref == null || imu == null) return 0;
-        double baseline = imu.distanceBetween(ref.tNs, curTns);
+        FrameSample localRef = this.ref;
+        if (localRef == null || imu == null) return 0;
+        double baseline = imu.distanceBetween(localRef.tNs, curTns);
         return baseline / criteria.getMinBaseline();
     }
 
