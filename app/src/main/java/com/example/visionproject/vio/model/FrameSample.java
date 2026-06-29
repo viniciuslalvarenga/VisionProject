@@ -1,7 +1,6 @@
 package com.example.visionproject.vio.model;
 
 import android.graphics.Bitmap;
-
 import org.opencv.core.Mat;
 
 public class FrameSample {
@@ -13,5 +12,9 @@ public class FrameSample {
         this.tNs = tNs;
         this.rgb = rgb;
         this.thumb = null;
+    }
+
+    public void release() {
+        if (rgb != null) rgb.release();
     }
 }

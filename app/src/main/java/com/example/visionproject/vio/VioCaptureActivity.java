@@ -9,6 +9,7 @@ import android.util.Log;
 import android.util.Size;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
@@ -26,6 +27,7 @@ import com.example.visionproject.vio.ui.ReadinessBarView;
 import com.example.visionproject.vio.viewmodel.VioCaptureViewModel;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 
 import java.util.concurrent.ExecutorService;
@@ -49,26 +51,35 @@ public class VioCaptureActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.vio_activity_capture);
+        try {
+            setContentView(R.layout.vio_activity_capture);
 
-        viewModel = new ViewModelProvider(this).get(VioCaptureViewModel.class);
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        cameraExecutor = Executors.newSingleThreadExecutor();
+            if (!OpenCVLoader.initLocal()) {
+                Log.e(TAG, "OpenCV failed to initialize");
+            }
 
-        tvStatus    = findViewById(R.id.tv_vio_state);
-        tvOffset    = findViewById(R.id.tv_vio_offset);
-        tvState     = tvStatus;
-        readinessBar = findViewById(R.id.vio_readiness_bar);
-        btnStart    = findViewById(R.id.btn_vio_start);
-        btnPause    = findViewById(R.id.btn_vio_pause);
-        btnCapture  = findViewById(R.id.btn_vio_capture_pair);
-        btnProcess  = findViewById(R.id.btn_vio_process);
-        btnImuTest  = findViewById(R.id.btn_vio_imu_test);
+            viewModel = new ViewModelProvider(this).get(VioCaptureViewModel.class);
+            sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+            cameraExecutor = Executors.newSingleThreadExecutor();
 
-        setupSensorLogger();
-        setupCamera();
-        observeViewModel();
-        setupButtons();
+            tvStatus    = findViewById(R.id.tv_vio_state);
+            tvOffset    = findViewById(R.id.tv_vio_offset);
+            tvState     = tvStatus;
+            readinessBar = findViewById(R.id.vio_readiness_bar);
+            btnStart    = findViewById(R.id.btn_vio_start);
+            btnPause    = findViewById(R.id.btn_vio_pause);
+            btnCapture  = findViewById(R.id.btn_vio_capture_pair);
+            btnProcess  = findViewById(R.id.btn_vio_process);
+            btnImuTest  = findViewById(R.id.btn_vio_imu_test);
+
+            setupSensorLogger();
+            setupCamera();
+            observeViewModel();
+            setupButtons();
+        } catch (Throwable t) {
+            Log.e(TAG, "CRASH onCreate", t);
+            Toast.makeText(this, "ERRO: " + t.getClass().getSimpleName() + "\n" + t.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void setupSensorLogger() {
@@ -106,8 +117,14 @@ public class VioCaptureActivity extends AppCompatActivity {
 
                 analysis.setAnalyzer(cameraExecutor, image -> {
                     long tFrameNs = image.getImageInfo().getTimestamp();
-                    Mat rgb = StereoUtils.yuvToRgbMat(image);
-                    image.close();
+                    Mat rgb = null;
+                    try {
+                        rgb = StereoUtils.yuvToRgbMat(image);
+                    } catch (Exception e) {
+                        Log.e(TAG, "YUV conversion failed", e);
+                    } finally {
+                        image.close();
+                    }
                     if (rgb != null && !rgb.empty()) {
                         viewModel.onNewFrame(tFrameNs, rgb);
                     }

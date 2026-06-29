@@ -21,7 +21,7 @@ public class ImuNavigator {
     private static final double EPS    = 0.08;
     private static final double DT_MAX = 0.1;
 
-    private final List<Pose> history = Collections.synchronizedList(new ArrayList<>());
+    private final List<Pose> history = new ArrayList<>();
     private final ZuptStrategy zupt;
 
     public ImuNavigator(ZuptStrategy zupt) {
@@ -66,11 +66,10 @@ public class ImuNavigator {
     }
 
     public synchronized Pose getPoseAt(long tNs) {
-        List<Pose> h = new ArrayList<>(history);
-        if (h.isEmpty()) return new Pose(tNs, new double[]{0,0,0}, new float[]{0,0,0,1});
+        if (history.isEmpty()) return new Pose(tNs, new double[]{0,0,0}, new float[]{0,0,0,1});
         // Linear interpolation
-        Pose prev = h.get(0), next = h.get(0);
-        for (Pose pose : h) {
+        Pose prev = history.get(0), next = history.get(0);
+        for (Pose pose : history) {
             if (pose.tNs <= tNs) prev = pose;
             if (pose.tNs >= tNs) { next = pose; break; }
         }

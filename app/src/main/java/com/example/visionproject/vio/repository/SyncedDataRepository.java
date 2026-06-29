@@ -23,7 +23,10 @@ public class SyncedDataRepository {
     }
 
     public synchronized void addFrame(FrameSample f) {
-        if (frames.size() >= MAX_FRAMES) frames.pollFirst();
+        if (frames.size() >= MAX_FRAMES) {
+            FrameSample old = frames.pollFirst();
+            if (old != null) old.release();
+        }
         frames.addLast(f);
     }
 
@@ -37,6 +40,7 @@ public class SyncedDataRepository {
     }
 
     public synchronized void clear() {
+        for (FrameSample f : frames) f.release();
         frames.clear();
         imuSamples.clear();
     }

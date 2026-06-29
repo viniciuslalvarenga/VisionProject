@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -20,7 +21,7 @@ public class VioCsvLogger {
     private static final String TAG = "VioCsvLogger";
     private static VioCsvLogger instance;
 
-    private final List<String> logs = new ArrayList<>();
+    private final List<String> logs = Collections.synchronizedList(new ArrayList<>());
     private final String sessionId;
     private final SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.US);
 
@@ -77,18 +78,41 @@ public class VioCsvLogger {
         String iso = isoFormat.format(new Date());
         long ms = System.currentTimeMillis();
         String device = Build.MANUFACTURER + " " + Build.MODEL;
-        String line = String.format(Locale.US,
-                "%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%d,%s",
-                sessionId, ms, iso, esc(eventType),
-                esc(sceneId), frameTns != null ? frameTns.toString() : "", esc(sensorType),
-                f(ax,4), f(ay,4), f(az,4),
-                f(gx,4), f(gy,4), f(gz,4),
-                f(qx,4), f(qy,4), f(qz,4), f(qw,4),
-                f(baselineM,4), f(parallaxPx,1), n(matchesGood),
-                n(inliersRansac), f(rotationDeg,2),
-                f(fxPx,2), f(zEstM,4), f(zRealM,4), f(errorPct,2),
-                esc(filePath), esc(device), Build.VERSION.SDK_INT, esc(notes));
-        logs.add(line);
+
+        // Use a StringBuilder or explicit concatenation to avoid format string mismatches with %d vs Long/String
+        StringBuilder sb = new StringBuilder();
+        sb.append(sessionId).append(",");
+        sb.append(ms).append(",");
+        sb.append(iso).append(",");
+        sb.append(esc(eventType)).append(",");
+        sb.append(esc(sceneId)).append(",");
+        sb.append(frameTns != null ? frameTns.toString() : "").append(",");
+        sb.append(esc(sensorType)).append(",");
+        sb.append(f(ax,4)).append(",");
+        sb.append(f(ay,4)).append(",");
+        sb.append(f(az,4)).append(",");
+        sb.append(f(gx,4)).append(",");
+        sb.append(f(gy,4)).append(",");
+        sb.append(f(gz,4)).append(",");
+        sb.append(f(qx,4)).append(",");
+        sb.append(f(qy,4)).append(",");
+        sb.append(f(qz,4)).append(",");
+        sb.append(f(qw,4)).append(",");
+        sb.append(f(baselineM,4)).append(",");
+        sb.append(f(parallaxPx,1)).append(",");
+        sb.append(n(matchesGood)).append(",");
+        sb.append(n(inliersRansac)).append(",");
+        sb.append(f(rotationDeg,2)).append(",");
+        sb.append(f(fxPx,2)).append(",");
+        sb.append(f(zEstM,4)).append(",");
+        sb.append(f(zRealM,4)).append(",");
+        sb.append(f(errorPct,2)).append(",");
+        sb.append(esc(filePath)).append(",");
+        sb.append(esc(device)).append(",");
+        sb.append(Build.VERSION.SDK_INT).append(",");
+        sb.append(esc(notes));
+
+        logs.add(sb.toString());
         Log.d(TAG, eventType);
     }
 
@@ -108,8 +132,12 @@ public class VioCsvLogger {
                 if (uri == null) { Log.e(TAG, "ContentResolver returned null"); return; }
                 OutputStream os = context.getContentResolver().openOutputStream(uri);
                 if (os == null) { Log.e(TAG, "OutputStream is null"); return; }
+                List<String> logsCopy;
+                synchronized (logs) {
+                    logsCopy = new ArrayList<>(logs);
+                }
                 try (PrintWriter writer = new PrintWriter(os)) {
-                    for (String line : logs) writer.println(line);
+                    for (String line : logsCopy) writer.println(line);
                     writer.flush();
                 }
                 showToast(context, "VIO CSV salvo: " + fileName);

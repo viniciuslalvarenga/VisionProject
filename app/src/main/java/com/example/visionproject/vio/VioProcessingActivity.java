@@ -2,6 +2,7 @@ package com.example.visionproject.vio;
 
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -13,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.visionproject.R;
 import com.example.visionproject.vio.ui.DisparityClickView;
+import org.opencv.android.OpenCVLoader;
 import com.example.visionproject.vio.viewmodel.VioProcessingViewModel;
 
 public class VioProcessingActivity extends AppCompatActivity {
@@ -28,6 +30,9 @@ public class VioProcessingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.vio_activity_processing);
 
+        if (!OpenCVLoader.initLocal()) {
+            Log.e("VioProcessingActivity", "OpenCV failed to initialize");
+        }
         viewModel = new ViewModelProvider(this).get(VioProcessingViewModel.class);
 
         tvStatus    = findViewById(R.id.tv_vio_proc_status);

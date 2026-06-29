@@ -49,7 +49,7 @@ public class SensorLogger implements SensorEventListener {
 
     private void register(SensorManager sm, int type) {
         Sensor s = sm.getDefaultSensor(type);
-        if (s != null) sm.registerListener(this, s, SensorManager.SENSOR_DELAY_FASTEST);
+        if (s != null) sm.registerListener(this, s, SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override

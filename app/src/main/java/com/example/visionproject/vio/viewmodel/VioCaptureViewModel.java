@@ -25,6 +25,7 @@ import org.opencv.core.Mat;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VioCaptureViewModel extends AndroidViewModel {
     private static final String TAG = "VioCaptureViewModel";
@@ -42,6 +43,8 @@ public class VioCaptureViewModel extends AndroidViewModel {
     private Mat K, distCoeffs;
     private volatile float[] currentRotation = {0, 0, 0, 1};
     private volatile long lastSensorTns = 0;
+
+    private final AtomicBoolean isProcessing = new AtomicBoolean(false);
 
     public VioCaptureViewModel(@NonNull Application app) {
         super(app);
@@ -87,32 +90,45 @@ public class VioCaptureViewModel extends AndroidViewModel {
     }
 
     public void onNewFrame(long tFrameNs, Mat rgb) {
-        if (state.getValue() != VioState.CAPTURING) return;
+        VioState currentState = state.getValue();
+        if (currentState != VioState.CAPTURING && currentState != VioState.KEYFRAME_READY) {
+            rgb.release();
+            return;
+        }
+
         if (K == null) {
             statusMessage.postValue("Erro: Calibração não carregada.");
+            rgb.release();
+            return;
+        }
+
+        if (isProcessing.get()) {
+            rgb.release();
             return;
         }
 
         FrameSample frame = new FrameSample(tFrameNs, rgb);
         SyncedDataRepository.getInstance().addFrame(frame);
 
+        isProcessing.set(true);
         executor.execute(() -> {
-            // Update readiness bar
-            double bRatio = keyframeSelector.getBaselineRatio(imuNavigator, tFrameNs);
-            baselineRatio.postValue(Math.min(bRatio, 1.5));
+            try {
+                // Update readiness bar
+                double bRatio = keyframeSelector.getBaselineRatio(imuNavigator, tFrameNs);
+                baselineRatio.postValue(Math.min(bRatio, 1.5));
 
-            KeyframePair pair = keyframeSelector.tryPair(frame, imuNavigator, K, distCoeffs);
-            if (pair != null) {
-                KeyframePairRepository.getInstance().setPair(pair);
-                state.postValue(VioState.KEYFRAME_READY);
-                statusMessage.postValue(String.format(java.util.Locale.US,
-                        "Par aceito! Baseline=%.3fm Matches=%d",
-                        pair.baseline_m, pair.matches.good.size()));
-                VioCsvLogger.getInstance().logDetailed(
-                        "KEYFRAME_ACCEPTED", null, tFrameNs, null,
-                        null, null, null, null, null, null, null, null, null, null,
-                        pair.baseline_m, pair.parallax_px, pair.matches.good.size(),
-                        null, null, null, null, null, null, null, null);
+                KeyframePair pair = keyframeSelector.tryPair(frame, imuNavigator, K, distCoeffs);
+                if (pair != null) {
+                    KeyframePairRepository.getInstance().setPair(pair);
+                    state.postValue(VioState.KEYFRAME_READY);
+                    statusMessage.postValue(String.format(java.util.Locale.US,
+                            "Par aceito! Baseline=%.3fm Matches=%d",
+                            pair.baseline_m, pair.matches.good.size()));
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error processing frame", e);
+            } finally {
+                isProcessing.set(false);
             }
         });
     }

@@ -2,6 +2,7 @@ package com.example.visionproject.vio;
 
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,21 +28,26 @@ public class VioImuTestActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.vio_activity_imu_test);
+        try {
+            setContentView(R.layout.vio_activity_imu_test);
 
-        viewModel = new ViewModelProvider(this).get(VioImuTestViewModel.class);
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+            viewModel = new ViewModelProvider(this).get(VioImuTestViewModel.class);
+            sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-        plotView     = findViewById(R.id.vio_imu_plot);
-        tvResult     = findViewById(R.id.tv_imu_result);
-        tvInstruction= findViewById(R.id.tv_imu_instruction);
-        btnStart     = findViewById(R.id.btn_imu_start);
-        btnStop      = findViewById(R.id.btn_imu_stop);
-        btnSave      = findViewById(R.id.btn_imu_save);
+            plotView     = findViewById(R.id.vio_imu_plot);
+            tvResult     = findViewById(R.id.tv_imu_result);
+            tvInstruction= findViewById(R.id.tv_imu_instruction);
+            btnStart     = findViewById(R.id.btn_imu_start);
+            btnStop      = findViewById(R.id.btn_imu_stop);
+            btnSave      = findViewById(R.id.btn_imu_save);
 
-        setupSensorLogger();
-        observeViewModel();
-        setupButtons();
+            setupSensorLogger();
+            observeViewModel();
+            setupButtons();
+        } catch (Throwable t) {
+            Log.e("VioImuTest", "CRASH onCreate", t);
+            Toast.makeText(this, "ERRO: " + t.getClass().getSimpleName() + "\n" + t.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void setupSensorLogger() {
